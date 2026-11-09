@@ -14,5 +14,10 @@ const out=process.argv[2]||'ghahr-ba-tarazoo.mp4', FPS=+(process.argv[3]||30);
     if(!ff.stdin.write(buf)) await new Promise(r=>ff.stdin.once('drain',r));
     if(i%60===0) process.stdout.write(`frame ${i}/${n}\n`);
   }
-  ff.stdin.end();await new Promise(r=>ff.on('close',r));await b.close();console.log('done →',out);
+  ff.stdin.end();await new Promise(r=>ff.on('close',r));await b.close();
+  // mux narrator audio (assets/narration.mp3), padded with silence to the video length
+  const tmp=out.replace(/\.mp4$/,'')+'.noaudio.mp4';require('fs').renameSync(out,tmp);
+  await new Promise(r=>spawn('ffmpeg',['-y','-loglevel','error','-i',tmp,'-i',path.resolve(__dirname,'assets/narration.mp3'),
+    '-map','0:v','-map','1:a','-c:v','copy','-c:a','aac','-b:a','192k','-af','apad','-t',String(dur),'-movflags','+faststart',out],{stdio:'inherit'}).on('close',r));
+  require('fs').unlinkSync(tmp);console.log('done →',out);
 })();
