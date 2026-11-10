@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>شهر شنبه‌ها</title>
+<style>
+@font-face{font-family:Vazirmatn;font-weight:100 900;font-display:block;src:url(assets/fonts/vazirmatn-arabic.woff2) format('woff2');unicode-range:U+0600-06FF,U+0750-077F,U+200C-200E,U+2010-2011,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:Vazirmatn;font-weight:100 900;font-display:block;src:url(assets/fonts/vazirmatn-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+2000-206F,U+2212}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1030;height:100%;overflow:hidden;font-family:Vazirmatn,sans-serif}
+#wrap{position:absolute;inset:0 0 64px 0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;transform-origin:center center;background:#3A7BE6;flex:none}
+#stage svg{position:absolute;inset:0;width:1080px;height:1920px;display:block}
+#cap{position:absolute;left:60px;right:60px;bottom:96px;direction:rtl;pointer-events:none}
+#cap .card{background:#fff;border:6px solid #141414;border-radius:40px;padding:34px 44px 38px;font-weight:800;font-size:54px;line-height:1.55;color:#141414;box-shadow:12px 14px 0 #141414;text-align:center}
+#cap .w{display:inline-block;white-space:pre}
+#end{position:absolute;left:0;right:0;top:300px;display:flex;justify-content:center;direction:rtl;pointer-events:none}
+#end .box{background:#fff;border:7px solid #141414;border-radius:44px;padding:40px 60px 50px;font-weight:900;font-size:88px;line-height:1.45;color:#141414;text-align:center;box-shadow:16px 18px 0 #141414}
+#end .box span{background:linear-gradient(transparent 58%,#F8CB4A 58%,#F8CB4A 92%,transparent 92%)}
+#end .box span.r{background:linear-gradient(transparent 58%,#F37A62 58%,#F37A62 92%,transparent 92%)}
+#title{position:absolute;top:70px;right:60px;direction:rtl;background:#141414;color:#fff;font-weight:900;font-size:46px;border-radius:26px;padding:8px 30px 14px}
+#title b{color:#F8CB4A}
+#ui{position:absolute;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;gap:14px;padding:0 18px;direction:ltr;color:#fff;font:600 15px system-ui,sans-serif;background:#0d1030}
+#ui button{background:#EA4B3C;border:0;color:#fff;border-radius:10px;padding:9px 16px;font:700 15px system-ui;cursor:pointer;min-width:84px}
+#ui input{flex:1;accent-color:#F8CB4A}
+body.render #ui{display:none}
+body.render #wrap{inset:0;display:block}
+body.render #stage{transform:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <svg id="svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
+        <stop offset="0" stop-color="#7CC8F8"/><stop offset=".45" stop-color="#3A7BE6"/><stop offset="1" stop-color="#2433A8"/>
+      </linearGradient>
+      <pattern id="stripes" width="46" height="46" patternUnits="userSpaceOnUse" patternTransform="rotate(-32)">
+        <rect width="46" height="46" fill="#EA4B3C"/><rect y="0" width="46" height="9" fill="#D8392E"/><rect y="24" width="46" height="4" fill="#F26A52"/>
+      </pattern>
+      <pattern id="wstripes" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+        <rect width="40" height="40" fill="#fff"/><rect width="40" height="6" fill="#A9C8F5"/>
+      </pattern>
+      <pattern id="checker" width="72" height="72" patternUnits="userSpaceOnUse">
+        <rect width="72" height="72" fill="#E9493A"/><rect width="36" height="36" fill="#C93229"/><rect x="36" y="36" width="36" height="36" fill="#C93229"/>
+      </pattern>
+      <pattern id="bchecker" width="60" height="60" patternUnits="userSpaceOnUse">
+        <rect width="60" height="60" fill="#2B46C8"/><rect width="30" height="30" fill="#2433A8"/><rect x="30" y="30" width="30" height="30" fill="#2433A8"/>
+      </pattern>
+      <clipPath id="circClip"><circle cx="110" cy="1330" r="150"/></clipPath>
+    </defs>
+    <g id="bg"></g>
+    <rect id="dim" width="1080" height="1920" fill="#10164F" opacity="0"/>
+    <g id="world"></g>
+    <rect id="dim2" width="1080" height="1920" fill="#10164F" opacity="0"/>
+    <g id="screen"></g>
+  </svg>
+  <div id="title">شهر <b>شنبه‌ها</b></div>
+  <div id="cap"></div>
+  <div id="end"></div>
+</div></div>
+<audio id="vo" preload="auto"></audio>
+<div id="ui"><button id="play">▶ Play</button><input id="scrub" type="range" min="0" max="36" step="0.01" value="0"><span id="time">0.00s</span></div>
+
+<script>
+// ============================================================
+//  "شهر شنبه‌ها" — 36s motion graphic, 1080x1920 (9:16)
+//  Everything is a pure function of time t → deterministic frames.
+// ============================================================
+const DUR = 36;
+let TN = 0;
+const C = {red:'#EA4B3C', redD:'#C9342B', redL:'#F37A62', yel:'#F8CB4A', org:'#EDA12F', blueL:'#7CC8F8',
+  blue:'#3A7BE6', blueD:'#2433A8', pants:'#2B46C8', blk:'#141414', wht:'#FFFFFF', blush:'#F7A3A0', navy:'#1D2340'};
+
+// ---------- math / easing ----------
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eout=p=>1-Math.pow(1-p,3);
+const ein=p=>p*p*p;
+const back=p=>{const c1=2.2,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2);};
+const pop=(t,a,d=.45)=>back(seg(t,a,a+d));
+const fa=s=>String(s).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]).replace(/\./g,'٫');
+const R=n=>Math.round(n*10)/10;
+const win=(t,a,b,fi=.35,fo=.35)=>Math.min(seg(t,a,a+fi),1-seg(t,b-fo,b));
+function kf(t, keys){
+  if(t<=keys[0][0]) return keys[0][1];
+  for(let i=1;i<keys.length;i++){
+    const [t1,v1,e]=keys[i];
+    if(t<=t1){const [t0,v0]=keys[i-1];const p=(e||eio)(seg(t,t0,t1));
+      if(typeof v0==='number') return lerp(v0,v1,p);
+      const o={};for(const k in v0) o[k]=lerp(v0[k],v1[k]??v0[k],p);return o;}
+  }
+  return keys[keys.length-1][1];
+}
+
+// ---------- captions: [start, end, text, who?] ----------
+const CAPS=[
+  {a:0.3,b:5.9,chunks:[[0.4,2.3,'به شهر شنبه‌ها خوش اومدی!'],[2.5,5.5,'اینجا همه قراره از شنبه خیلی جدی شروع کنن!']]},
+  {a:6.2,b:14.9,chunks:[[6.4,7.5,'شنبه باشگاه،'],[7.9,9.4,'یکشنبه رژیم سخت،'],[9.9,11.2,'دوشنبه خستگی…'],[11.6,12.4,'سه‌شنبه هم:'],[12.5,14.6,'مربی جان، هفته بعد جبران می‌کنم!','clone3']]},
+  {a:15.3,b:22.9,chunks:[[15.5,18.6,'هفته‌ها می‌گذره و اون می‌مونه با یه سؤال:'],[19.3,22.5,'چرا با اینکه باشگاه می‌رم، هنوز به هدفم نرسیدم؟']]},
+  {a:23.4,b:28.6,chunks:[[23.6,25.9,'این بار دنبال یه شروع بی‌نقص نیست.'],[26.3,28.3,'کمک می‌گیره تا برنامه‌اش شدنی باشه؛']]},
+  {a:28.7,b:33.2,chunks:[[28.9,32.6,'برای روزهای شلوغ و سخت هم، نه فقط شنبه‌ها!']]},
+];
+function talkAmt(who){
+  for(const c of CAPS) for(const [s0,s1,_x,w] of c.chunks) if(w===who&&TN>=s0&&TN<=s1) return 1;
+  return 0;
+}
+const mouthWave=()=>clamp(.5+.35*Math.sin(TN*17)+.3*Math.sin(TN*9.3+1));
+
+const capEl=document.getElementById('cap');
+let capKey='';
+function renderCaption(t){
+  const c=CAPS.find(c=>t>=c.a&&t<=c.b);
+  if(!c){capEl.style.opacity=0;return;}
+  if(c.a+''!==capKey){
+    capKey=c.a+'';
+    let html='<div class="card">';
+    c.chunks.forEach(([s0,s1,txt])=>{const ws=txt.split(' ');const step=(s1-s0)*.85/ws.length;ws.forEach((w,wi)=>{html+=`<span class="w" data-at="${(s0+wi*step).toFixed(2)}">${w}</span> `;});});
+    capEl.innerHTML=html+'</div>';
+  }
+  const inP=eout(seg(t,c.a,c.a+.35)), outP=seg(t,c.b-.25,c.b);
+  capEl.style.opacity=1-outP;
+  capEl.style.transform=`translateY(${R((1-inP)*90+outP*30)}px) rotate(${R(-1.2+(1-inP)*-3)}deg) scale(${R(.9+.1*inP)})`;
+  capEl.querySelectorAll('.w').forEach(s=>{
+    const p=seg(t,+s.dataset.at,+s.dataset.at+.22);
+    s.style.opacity=p; s.style.transform=`translateY(${R((1-eout(p))*22)}px)`;
+  });
+}
+
+// ---------- svg helpers ----------
+const pt=(x,y)=>`${R(x)},${R(y)}`;
+function bubbleShape(circles, stroke=6, fill='#fff', line=C.blk){
+  let s='';if(stroke)for(const [x,y,r] of circles) s+=`<circle cx="${R(x)}" cy="${R(y)}" r="${R(r+stroke)}" fill="${line}"/>`;
+  for(const [x,y,r] of circles) s+=`<circle cx="${R(x)}" cy="${R(y)}" r="${R(r)}" fill="${fill}"/>`;return s;
+}
+function txt(x,y,s,size,fill=C.blk,weight=800,extra=''){
+  return `<text x="${R(x)}" y="${R(y)}" font-family="Vazirmatn" font-weight="${weight}" font-size="${size}" fill="${fill}" text-anchor="middle" direction="rtl" ${extra}>${s}</text>`;
+}
+function ik(ax,ay,bx,by,l1,l2,bend){
+  const dx=bx-ax,dy=by-ay;let d=Math.hypot(dx,dy);const dd=clamp(d,Math.abs(l1-l2)+1,l1+l2-.5);
+  const base=Math.atan2(dy,dx);const a=Math.acos(clamp((l1*l1+dd*dd-l2*l2)/(2*l1*dd),-1,1));
+  const ang=base+a*bend;const ex=ax+l1*Math.cos(ang),ey=ay+l1*Math.sin(ang);
+  const fx=bx-ex,fy=by-ey,fl=Math.hypot(fx,fy)||1;
+  return {ex,ey,hx:ex+fx/fl*l2,hy:ey+fy/fl*l2};
+}
+
+// ============================================================
+//  BACKGROUND (screen space)
+// ============================================================
+function background(t){
+  let s='<rect width="1080" height="1920" fill="url(#sky)"/>';
+  s+=`<path d="M0 0 L330 0 L0 210 Z" fill="url(#wstripes)"/>`;
+  const dl=(x1,y1,x2,y2)=>`<line x1="${R(x1)}" y1="${R(y1)}" x2="${R(x2)}" y2="${R(y2)}" stroke="#fff" stroke-width="6" stroke-linecap="round"/><circle cx="${R(x2)}" cy="${R(y2)}" r="13" fill="#fff"/>`;
+  const sw=Math.sin(t*.9)*12;
+  s+=dl(420,30,620+sw,150+sw*.5);
+  let p='M0 150 ';
+  for(let y=150;y<=1380;y+=30){const k=(y-150)/1230;const x=40+260*Math.sin(Math.PI*k)+28*Math.sin(y/95+t*.9)+12*Math.sin(y/37-t);p+=`L${R(x)} ${y} `;}
+  s+=`<path d="${p}L0 1380 Z" fill="url(#stripes)"/>`;
+  let p2='';for(let y=0;y<=1500;y+=25){const k=clamp((y-150)/1230);const x=95+260*Math.sin(Math.PI*k)+28*Math.sin(y/95+t*.9);p2+=(y?'L':'M')+R(x)+' '+y+' ';}
+  s+=`<path d="${p2}" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="40 26" stroke-dashoffset="${R(-t*60)}" stroke-linecap="round"/>`;
+  s+=`<g transform="translate(950 200) rotate(${R(18+Math.sin(t*.5)*5)})"><rect x="-165" y="-165" width="330" height="330" rx="70" fill="url(#checker)"/></g>`;
+  s+=`<path d="M300 1240 C520 1420 720 900 1100 640" fill="none" stroke="${C.yel}" stroke-width="10" stroke-dasharray="36 20 8 20" stroke-dashoffset="${R(t*50)}" stroke-linecap="round"/>`;
+  s+=dl(1080,820,800+sw,770);
+  s+=`<circle cx="110" cy="1330" r="150" fill="#fff"/><g clip-path="url(#circClip)">`;
+  for(let k=0;k<7;k++){let w='';for(let x=-50;x<=270;x+=15){const y=1200+k*42+10*Math.sin(x/28+k+t*1.4);w+=(x>-50?'L':'M')+x+' '+R(y)+' ';}s+=`<path d="${w}" fill="none" stroke="#9FC2F2" stroke-width="7"/>`;}
+  s+='</g>';
+  return s;
+}
+
+// ============================================================
+//  CHARACTERS
+// ============================================================
+const STAND={hipY:-330,thigh:170,shin:165,hLx:-118,hLy:-350,hRx:118,hRy:-350,bL:1,bR:-1,fLx:-46,fLy:0,fRx:46,fRy:0,kL:1,kR:-1,head:0,rot:0};
+const P=(o)=>Object.assign({},STAND,o);
+const POSE={
+  stand:P({}),
+  hips:P({hLx:-82,hLy:-372,hRx:82,hRy:-372}),
+  jump:P({fLx:-60,fLy:-60,fRx:60,fRy:-60,hLx:-170,hLy:-640,hRx:170,hRy:-640,bL:-1,bR:1}),
+  tired:P({hLx:-95,hLy:-300,hRx:95,hRy:-300,head:8,rot:-3,fLx:-55,fRx:55}),
+  bag:P({hRx:150,hRy:-330,hLx:-110,hLy:-560,bL:-1,bR:-1}),
+  bagUp:P({hRx:150,hRy:-330,hLx:-200,hLy:-760,bL:-1,bR:-1}),
+  write:P({hLx:-20,hLy:-470,bL:1,hRx:30,hRy:-450,bR:-1}),
+  phone:P({hRx:42,hRy:-470,bR:-1,hLx:-100,hLy:-360}),
+  phoneSwipe:P({hRx:42,hRy:-470,bR:-1,hLx:-210,hLy:-560,bL:-1}),
+  sigh:P({hLx:-90,hLy:-310,hRx:90,hRy:-310,head:-6}),
+  sit:P({hipY:-250,thigh:120,shin:160,fLx:-112,fRx:112,hLx:-100,hLy:-250,hRx:100,hRy:-250}),
+  sitHead:P({hipY:-250,thigh:120,shin:160,fLx:-112,fRx:112,hLx:-40,hLy:-520,hRx:40,hRy:-520,bL:1,bR:-1,head:10}),
+  reach:P({hLx:-200,hLy:-620,bL:-1,hRx:110,hRy:-360,rot:-4}),
+  thumbs:P({hRx:150,hRy:-560,bR:1,hLx:-110,hLy:-350}),
+  pen:P({hLx:-130,hLy:-560,bL:-1,hRx:110,hRy:-360}),
+  cheer:P({hLx:-215,hLy:-835,hRx:215,hRy:-835,bL:-1,bR:1}),
+};
+const FACE={eye:1,brow:0,sad:0,smile:.4,open:0,awk:0,blush:.5,sweat:0,lx:0,ly:0,angry:0};
+const F=o=>Object.assign({},FACE,o);
+const LOOK_W={top:C.red,topD:C.redD,pants:C.pants,hair:'long',blush:1};
+const LOOK_COACH={top:C.yel,topD:C.org,pants:C.navy,hair:'short',blush:0,whistle:1};
+
+// walk overlay
+function walkPose(base,ph,amp){
+  return Object.assign({},base,{fLy:base.fLy-Math.max(0,Math.sin(ph))*44*amp,fRy:base.fRy-Math.max(0,-Math.sin(ph))*44*amp,
+    hLy:base.hLy+Math.sin(ph)*22*amp,hRy:base.hRy-Math.sin(ph)*22*amp});
+}
+
+function holdItem(kind,x,y,ang,o={}){
+  if(kind==='phone') return `<g transform="translate(${pt(x,y)}) rotate(${R(ang-90)})"><rect x="-26" y="-6" width="52" height="92" rx="12" fill="${C.blk}"/><rect x="-19" y="2" width="38" height="70" rx="6" fill="#9FD3FF"/></g>`;
+  if(kind==='pen') return `<g transform="translate(${pt(x,y)}) rotate(${R(ang-90+25)})"><rect x="-7" y="-10" width="14" height="78" rx="6" fill="${C.blue}" stroke="${C.blk}" stroke-width="4"/><path d="M-7 66 L0 84 L7 66 Z" fill="${C.blk}"/></g>`;
+  if(kind==='bag') return `<g transform="translate(${pt(x,y)})"><path d="M-40 40 Q-40 0 0 0 Q40 0 40 40" fill="none" stroke="${C.blk}" stroke-width="9"/><rect x="-95" y="30" width="190" height="96" rx="44" fill="${C.red}" stroke="${C.blk}" stroke-width="6"/><rect x="-95" y="66" width="190" height="16" fill="${C.yel}"/><rect x="-95" y="30" width="190" height="96" rx="44" fill="none" stroke="${C.blk}" stroke-width="6"/><circle cx="-62" cy="78" r="9" fill="#fff" stroke="${C.blk}" stroke-width="4"/></g>`;
+  if(kind==='clip'){ const n=o.lines??4;
+    let s=`<g transform="translate(${pt(x+60,y-40)}) rotate(-6)"><rect x="-95" y="-120" width="190" height="240" rx="18" fill="#C98A4B" stroke="${C.blk}" stroke-width="6"/><rect x="-80" y="-100" width="160" height="206" rx="8" fill="#fff"/><rect x="-36" y="-132" width="72" height="30" rx="10" fill="${C.navy}"/>`;
+    s+=txt(0,-60,'رژیم سخت!',30,C.red,900);
+    for(let i=0;i<n;i++){const yy=-24+i*34;s+=`<rect x="-62" y="${yy}" width="${[100,80,110,70,95][i]}" height="12" rx="6" fill="#B9C3DA"/><path d="M48 ${yy-4} l14 14 M62 ${yy-4} l-14 14" stroke="${C.red}" stroke-width="5" stroke-linecap="round"/>`;}
+    return s+'</g>';}
+  return '';
+}
+
+function drawPerson(st){
+  const {x,y,s=1,pose:p,face:f,t,look=LOOK_W,holdL,holdR,squash=0,opacity=1}=st;
+  const sy=p.hipY-270;
+  const shL=[-80,sy+32],shR=[80,sy+32];
+  const hipL=[-38,p.hipY+10],hipR=[38,p.hipY+10];
+  let g=`<g transform="translate(${R(x)} ${R(y)}) scale(${R(s*(1+squash)*1000)/1000} ${R(s*(1-squash)*1000)/1000}) rotate(${R(p.rot)} 0 ${R(p.hipY)})" opacity="${R(opacity)}">`;
+  g+=`<ellipse cx="0" cy="6" rx="150" ry="18" fill="#000" opacity=".16"/>`;
+  const leg=(hip,fx,fy,kb,side)=>{
+    const k=ik(hip[0],hip[1],fx,fy,p.thigh,p.shin,kb);
+    let o=`<polyline points="${pt(...hip)} ${pt(k.ex,k.ey)} ${pt(k.hx,k.hy)}" fill="none" stroke="${look.pants}" stroke-width="66" stroke-linecap="round" stroke-linejoin="round"/>`;
+    o+=`<ellipse cx="${R(k.hx+side*14)}" cy="${R(k.hy+4)}" rx="44" ry="24" fill="${C.blk}"/><rect x="${R(k.hx+side*14-40)}" y="${R(k.hy+14)}" width="80" height="10" rx="5" fill="#fff"/>`;
+    return o;
+  };
+  g+=leg(hipL,p.fLx,p.fLy,p.kL,-1)+leg(hipR,p.fRx,p.fRy,p.kR,1);
+  g+=`<rect x="-78" y="${R(p.hipY-28)}" width="156" height="58" rx="24" fill="${look.pants}"/>`;
+  g+=`<path d="M-92 ${R(sy+40)} Q-92 ${R(sy)} -52 ${R(sy)} L52 ${R(sy)} Q92 ${R(sy)} 92 ${R(sy+40)} L76 ${R(p.hipY-6)} Q76 ${R(p.hipY+8)} 60 ${R(p.hipY+8)} L-60 ${R(p.hipY+8)} Q-76 ${R(p.hipY+8)} -76 ${R(p.hipY-6)} Z" fill="${look.top}"/>`;
+  g+=`<path d="M30 ${R(sy)} L52 ${R(sy)} Q92 ${R(sy)} 92 ${R(sy+40)} L76 ${R(p.hipY-6)} Q76 ${R(p.hipY+8)} 60 ${R(p.hipY+8)} L44 ${R(p.hipY+8)} Z" fill="${look.topD}" opacity=".55"/>`;
+  g+=`<rect x="-17" y="${R(sy-46)}" width="34" height="56" rx="10" fill="#fff" stroke="${C.blk}" stroke-width="5"/>`;
+  g+=`<path d="M-30 ${R(sy+2)} Q0 ${R(sy+26)} 30 ${R(sy+2)}" fill="#fff" stroke="${C.blk}" stroke-width="5"/>`;
+  if(look.whistle) g+=`<path d="M-30 ${R(sy+4)} Q0 ${R(sy+90)} 30 ${R(sy+4)}" fill="none" stroke="${C.blk}" stroke-width="4"/><rect x="-14" y="${R(sy+70)}" width="34" height="22" rx="8" fill="${C.red}" stroke="${C.blk}" stroke-width="4"/>`;
+  const hy=sy-112;
+  g+=`<g transform="translate(0 ${R(hy)}) rotate(${R(p.head)} 0 80)">`;
+  if(look.hair==='long'){
+    const hw=Math.sin(t*2.1)*5+(st.hairSwing||0);
+    g+=`<path d="M-96 -6 C-112 -130 112 -140 98 -8 C112 70 ${R(122+hw)} 140 ${R(110+hw)} 205 Q${R(80+hw)} 186 56 214 Q20 190 0 190 Q-24 192 -58 214 Q${R(-84+hw)} 186 ${R(-114+hw)} 205 C${R(-126+hw)} 140 -110 70 -96 -6 Z" fill="${C.blk}"/>`;
+  }
+  g+=`<circle cx="0" cy="8" r="80" fill="#fff" stroke="${C.blk}" stroke-width="5"/>`;
+  g+=face(f,t,look);
+  if(look.hair==='long'){
+    g+=`<path d="M-90 4 C-104 -100 70 -128 96 -14 C84 -40 46 -62 4 -46 C-30 -34 -58 -16 -90 4 Z" fill="${C.blk}"/>`;
+    g+=`<path d="M40 -86 C70 -110 106 -100 104 -60" fill="none" stroke="${C.blk}" stroke-width="22" stroke-linecap="round"/>`;
+  } else {
+    g+=`<path d="M-86 -2 C-100 -96 92 -112 90 -10 C70 -40 30 -52 -6 -50 C-40 -48 -66 -30 -86 -2 Z" fill="${C.navy}"/><path d="M-84 -30 C-120 -40 -110 -70 -70 -66" fill="${C.navy}"/>`;
+  }
+  g+='</g>';
+  const arm=(sh,hx,hy,b,side,hold)=>{
+    const k=ik(sh[0],sh[1],hx,hy,132,122,b);
+    const ang=Math.atan2(k.hy-k.ey,k.hx-k.ex)*180/Math.PI;
+    let o='';
+    if(hold==='bag') o+=holdItem('bag',k.hx,k.hy,ang);
+    o+=`<polyline points="${pt(...sh)} ${pt(k.ex,k.ey)} ${pt(k.hx,k.hy)}" fill="none" stroke="${look.top}" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if(hold&&hold!=='bag') o+=holdItem(hold,k.hx,k.hy,ang,st.holdOpts||{});
+    o+=`<g transform="translate(${pt(k.hx,k.hy)}) rotate(${R(ang-90)})"><circle cx="0" cy="14" r="26" fill="#fff" stroke="${C.blk}" stroke-width="5"/><ellipse cx="${-side*20}" cy="4" rx="11" ry="15" fill="#fff" stroke="${C.blk}" stroke-width="5"/><circle cx="0" cy="14" r="20" fill="#fff"/></g>`;
+    return o;
+  };
+  g+=arm(shL,p.hLx,p.hLy,p.bL,-1,holdL)+arm(shR,p.hRx,p.hRy,p.bR,1,holdR);
+  return g+'</g>';
+}
+function face(f,t,look){
+  const bt=(t+0.4+(look.blush?0:1.3))%3.3; let eye=f.eye; if(bt<.13) eye*=Math.abs(bt-.065)/.065*0.9+0.05;
+  const ex=f.lx*10, ey=f.ly*8;
+  let o='';
+  if(look.blush) o+=`<ellipse cx="-50" cy="38" rx="17" ry="10" fill="${C.blush}" opacity="${R(f.blush)}"/><ellipse cx="50" cy="38" rx="17" ry="10" fill="${C.blush}" opacity="${R(f.blush)}"/>`;
+  for(const sx of [-1,1]){
+    const cx=sx*28+ex, cy=10+ey;
+    if(eye<.2) o+=`<path d="M${R(cx-11)} ${R(cy)} Q${R(cx)} ${R(cy+(f.smile>.6?-7:6))} ${R(cx+11)} ${R(cy)}" fill="none" stroke="${C.blk}" stroke-width="5" stroke-linecap="round"/>`;
+    else {o+=`<ellipse cx="${R(cx)}" cy="${R(cy)}" rx="${R(8+Math.max(0,eye-1)*6)}" ry="${R(11*eye)}" fill="${C.blk}"/>`;
+      if(eye>1.1) o+=`<circle cx="${R(cx+3)}" cy="${R(cy-4)}" r="3.5" fill="#fff"/>`;
+      if(eye<.6) o+=`<path d="M${R(cx-12)} ${R(cy-5)} L${R(cx+12)} ${R(cy-5)}" stroke="${C.blk}" stroke-width="5" stroke-linecap="round"/>`;}
+    const by=-14-f.brow*12;const inner=-f.sad*10+f.angry*10;
+    o+=`<path d="M${R(sx*14+ex)} ${R(by+inner+ey*.5)} L${R(sx*42+ex)} ${R(by-inner*.3+ey*.5)}" stroke="${C.blk}" stroke-width="6" stroke-linecap="round"/>`;
+  }
+  const my=46;
+  if(f.open>.08){
+    const rw=10+f.open*6, rh=4+f.open*13;
+    o+=`<ellipse cx="0" cy="${R(my+2)}" rx="${R(rw)}" ry="${R(rh)}" fill="${C.blk}"/><ellipse cx="0" cy="${R(my+2+rh*.45)}" rx="${R(rw*.6)}" ry="${R(rh*.4)}" fill="#E9605A"/>`;
+  } else if(f.awk>.5){
+    o+=`<path d="M-22 ${my} q5.5 -7 11 0 t11 0 t11 0 t11 0" fill="none" stroke="${C.blk}" stroke-width="5" stroke-linecap="round"/>`;
+  } else {
+    o+=`<path d="M-18 ${R(my-f.smile*4)} Q0 ${R(my+f.smile*16)} 18 ${R(my-f.smile*4)}" fill="none" stroke="${C.blk}" stroke-width="5" stroke-linecap="round"/>`;
+  }
+  if(f.sweat>.02){const s=f.sweat;const dy=(t*30)%30*s;
+    o+=`<g transform="translate(86 ${R(-40+dy)}) scale(${R(s)})"><path d="M0 -26 C10 -8 16 2 16 10 A16 16 0 0 1 -16 10 C-16 2 -10 -8 0 -26 Z" fill="#8FD0FF" stroke="${C.blk}" stroke-width="4"/></g>`;}
+  return o;
+}
+
+// ============================================================
+//  PROPS
+// ============================================================
+function treadmill(t,speed){
+  let s='<g>';
+  // console + uprights (behind the runner)
+  s+=`<rect x="-200" y="-620" width="400" height="92" rx="26" fill="${C.navy}" stroke="${C.blk}" stroke-width="6"/>`;
+  s+=`<rect x="-182" y="-604" width="96" height="58" rx="10" fill="#0C1230"/>`+txt(-134,-562,fa('05:3'+Math.floor(t%10)),30,C.yel,900,'direction="ltr"');
+  s+=`<circle cx="150" cy="-574" r="14" fill="${C.red}"/><circle cx="110" cy="-574" r="14" fill="${C.yel}"/>`;
+  s+=`<rect x="-196" y="-540" width="26" height="540" rx="10" fill="#7C86A8" stroke="${C.blk}" stroke-width="5"/><rect x="170" y="-540" width="26" height="540" rx="10" fill="#7C86A8" stroke="${C.blk}" stroke-width="5"/>`;
+  s+=`<rect x="-232" y="-370" width="80" height="26" rx="13" fill="${C.blk}"/><rect x="152" y="-370" width="80" height="26" rx="13" fill="${C.blk}"/>`;
+  // deck (perspective)
+  s+=`<path d="M-170 -40 L170 -40 L230 50 L-230 50 Z" fill="${C.navy}" stroke="${C.blk}" stroke-width="6" stroke-linejoin="round"/>`;
+  s+=`<path d="M-150 -34 L150 -34 L196 40 L-196 40 Z" fill="#39436E"/>`;
+  for(let i=0;i<5;i++){const k=((i/5)+t*speed)%1;const yy=-34+k*74;const hw=150+k*46;s+=`<line x1="${R(-hw)}" y1="${R(yy)}" x2="${R(hw)}" y2="${R(yy)}" stroke="#56628F" stroke-width="${R(3+k*5)}"/>`;}
+  s+=`<rect x="-240" y="46" width="480" height="30" rx="12" fill="${C.red}" stroke="${C.blk}" stroke-width="6"/>`;
+  return s+'</g>';
+}
+function signBoard(text,style,w=260,h=96,fs=40){
+  const st={white:['#fff',C.red],red:[C.red,'#fff'],yel:[C.yel,C.blk],blue:[C.blueD,'#fff'],navy:[C.navy,C.yel]}[style];
+  return `<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="22" fill="${st[0]}" stroke="${C.blk}" stroke-width="6"/>`+txt(0,fs*.36,text,fs,st[1],900);
+}
+function building(b,t,signP){
+  let s=`<g transform="translate(${b.x} 1500)">`;
+  s+=`<rect x="0" y="${-b.h}" width="${b.w}" height="${b.h}" rx="18" fill="${b.fill}" stroke="${C.blk}" stroke-width="6"/>`;
+  if(b.roof) s+=`<rect x="-14" y="${-b.h-26}" width="${b.w+28}" height="36" rx="14" fill="${b.roof}" stroke="${C.blk}" stroke-width="6"/>`;
+  // windows
+  const cols=Math.floor((b.w-40)/70), rows=Math.floor((b.h-260)/110);
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const wx=24+c*((b.w-48)/cols)+8, wy=-b.h+60+r*110;
+    const lit=((r*7+c*3+b.x)%5)<2;
+    s+=`<rect x="${R(wx)}" y="${wy}" width="${R((b.w-48)/cols-16)}" height="62" rx="10" fill="${lit?C.yel:b.win}" stroke="${C.blk}" stroke-width="4"/>`;
+  }
+  // door
+  s+=`<rect x="${b.w/2-42}" y="-150" width="84" height="150" rx="14" fill="${C.navy}" stroke="${C.blk}" stroke-width="5"/>`;
+  // sign
+  const sp=signP;
+  if(sp>0.01) s+=`<g transform="translate(${b.w/2} ${b.sy}) scale(${R(sp*100)/100}) rotate(${b.sr||0})">${signBoard(b.sign,b.ss,b.sw||Math.min(b.w-10,280),b.sh||96,b.fs||40)}</g>`;
+  return s+'</g>';
+}
+const BUILDINGS=[
+  {x:-430,w:330,h:1150,fill:'url(#stripes)',win:'#fff',roof:C.redD,sign:'از شنبه',ss:'white',sy:-820,sr:-4,at:2.1},
+  {x:-80,w:280,h:780,fill:C.yel,win:'#fff',sign:'رژیم از شنبه!',ss:'red',sy:-690,sr:3,at:2.6,fs:36},
+  {x:300,w:480,h:1180,fill:'#5B95EE',win:'#BFD9FF',roof:C.navy,sign:'شهر شنبه‌ها',ss:'red',sy:-1250,sw:440,sh:120,fs:58,at:1.5},
+  {x:880,w:280,h:900,fill:'#fff',win:'#A9C8F5',sign:'باشگاه: از شنبه',ss:'blue',sy:-640,sr:-3,at:3.0,fs:34},
+  {x:1180,w:340,h:1120,fill:'url(#bchecker)',win:'#fff',roof:C.yel,sign:'از شنبه!',ss:'yel',sy:-860,sr:4,at:3.4},
+];
+function ground(t){
+  let s=`<rect x="-900" y="1490" width="2900" height="1100" fill="${C.yel}"/>`;
+  for(let k=0;k<9;k++){let g='';for(let x=-900;x<=2000;x+=40){const y=1540+k*60+16*Math.sin(x/140+k*1.7+t*.3);g+=(x>-900?'L':'M')+x+' '+R(y)+' ';}s+=`<path d="${g}" fill="none" stroke="${C.org}" stroke-width="${k%3?6:10}" stroke-linecap="round" opacity=".85"/>`;}
+  s+=`<rect x="-900" y="1482" width="2900" height="20" fill="${C.org}"/>`;
+  let w2='';for(let x=-900;x<=2000;x+=40) w2+=(x>-900?'L':'M')+x+' 1640 ';
+  s+=`<path d="${w2}" fill="none" stroke="#fff" stroke-width="9" stroke-dasharray="36 24" stroke-dashoffset="${R(t*40)}" stroke-linecap="round" opacity=".9"/>`;
+  return s;
+}
+function streetSign(t,flip){
+  // flip: 0 → «از شنبه», 1 → «امروز»
+  const sx=Math.cos(flip*Math.PI); const showNew=flip>.5;
+  let s=`<g transform="translate(120 1500)"><rect x="-12" y="-480" width="24" height="480" rx="8" fill="#7C86A8" stroke="${C.blk}" stroke-width="5"/>`;
+  s+=`<g transform="translate(0 -500) scale(${R(Math.abs(sx)*100)/100+0.01} 1) rotate(${showNew?2:-3})">`;
+  s+=showNew? signBoard('امروز','red',250,110,54) : signBoard('از شنبه','yel',250,110,46);
+  s+='</g>';
+  if(flip>0.95){const sp=pop(t,26.6,.5);for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const r=150+40*seg(t,26.6,27.3);
+    s+=`<g transform="translate(${R(Math.cos(a)*r)} ${R(-500+Math.sin(a)*r*.7)}) scale(${R(sp*(1-seg(t,27.2,27.7)))}) rotate(${i*30})"><path d="M0 -18 L5 -5 L18 0 L5 5 L0 18 L-5 5 L-18 0 L-5 -5 Z" fill="${C.yel}" stroke="${C.blk}" stroke-width="3"/></g>`;}}
+  return s+'</g>';
+}
+function drawScale(x,y,s,num){
+  if(s<=.01) return '';
+  return `<g transform="translate(${R(x)} ${R(y)}) scale(${R(s*100)/100})"><ellipse cx="0" cy="6" rx="190" ry="20" fill="#000" opacity=".16"/><rect x="-55" y="-8" width="30" height="14" rx="5" fill="${C.blk}"/><rect x="25" y="-8" width="30" height="14" rx="5" fill="${C.blk}"/><rect x="-165" y="-122" width="330" height="118" rx="32" fill="#fff" stroke="${C.blk}" stroke-width="6"/><rect x="-150" y="-114" width="300" height="16" rx="8" fill="#DCE7FA"/><rect x="-72" y="-92" width="144" height="54" rx="12" fill="${C.navy}"/>${txt(0,-52,num,36,'#FF7466',900,'direction="ltr"')}</g>`;
+}
+function bench(x,y){
+  let s=`<g transform="translate(${R(x)} ${R(y)})">`;
+  s+=`<ellipse cx="0" cy="6" rx="300" ry="20" fill="#000" opacity=".15"/>`;
+  s+=`<rect x="-240" y="-520" width="22" height="300" rx="8" fill="${C.redD}"/><rect x="218" y="-520" width="22" height="300" rx="8" fill="${C.redD}"/>`;
+  for(let i=0;i<3;i++) s+=`<rect x="-280" y="${-520+i*60}" width="560" height="40" rx="18" fill="${C.red}" stroke="${C.blk}" stroke-width="5"/>`;
+  s+=`<rect x="-250" y="-230" width="26" height="232" rx="8" fill="${C.blk}"/><rect x="224" y="-230" width="26" height="232" rx="8" fill="${C.blk}"/>`;
+  s+=`<rect x="-290" y="-262" width="580" height="46" rx="20" fill="${C.red}" stroke="${C.blk}" stroke-width="5"/><rect x="-276" y="-252" width="552" height="10" rx="5" fill="${C.redL}"/>`;
+  return s+'</g>';
+}
+const DAYS=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+function calPage(i){
+  const red=i%3===0;
+  return `<rect x="-66" y="-80" width="132" height="160" rx="16" fill="#fff" stroke="${C.blk}" stroke-width="5"/><path d="M-63 -38 L-63 -62 Q-63 -77 -48 -77 L48 -77 Q63 -77 63 -62 L63 -38 Z" fill="${red?C.red:C.blue}"/>`+
+    txt(0,-48,DAYS[i%7],22,'#fff',900)+txt(0,44,fa((i*4)%30+1),64,C.blk,900);
+}
+function dayPill(text,color,tcol='#fff'){
+  const w=40+text.length*24;
+  return `<rect x="${-w/2}" y="-34" width="${w}" height="68" rx="34" fill="${color}" stroke="${C.blk}" stroke-width="5"/>`+txt(0,13,text,36,tcol,900);
+}
+function poof(t,t0,x,y,sc=1){
+  const p=seg(t,t0,t0+.5); if(p<=0||p>=1) return '';
+  let s='';for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const r=(60+120*eout(p))*sc;s+=`<circle cx="${R(x+Math.cos(a)*r)}" cy="${R(y+Math.sin(a)*r*.8)}" r="${R((34*(1-p)+4)*sc)}" fill="#fff" stroke="${C.blk}" stroke-width="4" opacity="${R(1-p*.6)}"/>`;}
+  return s;
+}
+function speech(text,w,fs=34,tailX=-40){
+  return `<rect x="${-w/2}" y="-60" width="${w}" height="104" rx="30" fill="#fff" stroke="${C.blk}" stroke-width="6"/><path d="M${tailX-14} 40 L${tailX-30} 84 L${tailX+22} 42 Z" fill="#fff" stroke="${C.blk}" stroke-width="6" stroke-linejoin="round"/><rect x="${tailX-20}" y="30" width="46" height="16" fill="#fff"/>`+txt(0,4,text,fs,C.blk,900);
+}
+function paperPlane(){
+  return `<path d="M-70 10 L80 -60 L20 70 Z" fill="#fff" stroke="${C.blk}" stroke-width="5" stroke-linejoin="round"/><path d="M80 -60 L0 22 L20 70" fill="#E6EEFB" stroke="${C.blk}" stroke-width="5" stroke-linejoin="round"/><path d="M80 -60 L-6 40" stroke="${C.blk}" stroke-width="4"/>`;
+}
+// handwritten plan notepad (screen space). Reveal right→left (RTL).
+function notepad(t){
+  let s=`<rect x="-380" y="-300" width="760" height="600" rx="34" fill="#fff" stroke="${C.blk}" stroke-width="7"/>`;
+  s+=`<path d="M-377 -190 L-377 -265 Q-377 -297 -345 -297 L345 -297 Q377 -297 377 -265 L377 -190 Z" fill="${C.red}"/>`;
+  for(let i=0;i<7;i++) s+=`<circle cx="${-300+i*100}" cy="-300" r="16" fill="${C.navy}" stroke="${C.blk}" stroke-width="4"/>`;
+  s+=txt(0,-222,'برنامه‌ی شدنیِ من',50,'#fff',900);
+  for(let i=0;i<4;i++) s+=`<line x1="-330" y1="${-80+i*110}" x2="330" y2="${-80+i*110}" stroke="#C9D6EE" stroke-width="4"/>`;
+  const lines=[
+    {y:-100,txt:'قدم اول: ۱۵ دقیقه پیاده‌روی',a:28.9,b:30.4,col:C.blk},
+    {y:10,txt:'روز شلوغ؟ فقط ۵ دقیقه حرکت',a:30.6,b:32.0,col:C.blue},
+    {y:120,txt:'شروع: امروز!',a:32.1,b:32.8,col:C.red},
+  ];
+  let penX=330,penY=-130,writing=false;
+  lines.forEach((L,i)=>{
+    const p=seg(t,L.a,L.b);if(p<=0) return;
+    const w=(L.txt.length*22+20)*eio(p);
+    s+=`<clipPath id="nl${i}"><rect x="${R(340-w)}" y="${L.y-70}" width="${R(w)}" height="100"/></clipPath>`;
+    s+=`<g clip-path="url(#nl${i})"><text x="330" y="${L.y}" font-family="Vazirmatn" font-weight="800" font-size="46" fill="${L.col}" text-anchor="start" direction="rtl">${L.txt}</text></g>`;
+    s+=`<g transform="translate(-340 ${L.y-16}) scale(${R(pop(t,L.b,.35))})"><rect x="-26" y="-26" width="52" height="52" rx="12" fill="${C.yel}" stroke="${C.blk}" stroke-width="5"/><path d="M-12 0 L-2 11 L14 -12" stroke="${C.blk}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+    if(p<1){penX=340-w;penY=L.y-14+Math.sin(t*40)*6;writing=true;}
+  });
+  if(writing) s+=`<g transform="translate(${R(penX)} ${R(penY)}) rotate(28)"><rect x="-10" y="-120" width="20" height="110" rx="8" fill="${C.blue}" stroke="${C.blk}" stroke-width="5"/><path d="M-10 -12 L0 12 L10 -12 Z" fill="${C.blk}"/></g>`;
+  return s;
+}
+
+// ============================================================
+//  TIMELINE
+// ============================================================
+const GROUND=1500;
+function scene(t){
+  let world='', front='', scr='';
+  const cam=kf(t,[[0,{z:1.75,cx:540,cy:1130}],[1.0,{z:1.75,cx:540,cy:1130}],[4.2,{z:.7,cx:540,cy:1090}],[5.9,{z:.7,cx:540,cy:1090}],[6.8,{z:.82,cx:540,cy:1120}],[14.8,{z:.82,cx:540,cy:1120}],[15.8,{z:1,cx:560,cy:1040}],[23,{z:1,cx:560,cy:1040}],[24,{z:.92,cx:520,cy:1060}],[27.6,{z:.92,cx:520,cy:1060}],[28.4,{z:.92,cx:560,cy:960}],[33,{z:.92,cx:560,cy:960}],[35.5,{z:.86,cx:540,cy:1090}]]);
+  world+=ground(t);
+  BUILDINGS.forEach(b=>world+=building(b,t,pop(t,b.at,.5)));
+  world+=streetSign(t,eio(seg(t,25.9,26.6)));
+
+  // ===== Scene 1: treadmill (0–6.2) =====
+  if(t<6.4){
+    const tp=1-ein(seg(t,5.9,6.3));
+    if(tp>0){ world+=`<g transform="translate(540 ${GROUND}) scale(${R(tp*100)/100})">${treadmill(t,1.6)}</g>`; }
+    if(t<6.0){
+      const ph=t*2*Math.PI*2.4, sn=Math.sin(ph);
+      const pose=P({fLy:-Math.max(0,sn)*110-46,fRy:-Math.max(0,-sn)*110-46,fLx:-44,fRx:44,
+        hLx:-150,hLy:-450-sn*80,hRx:150,hRy:-450+sn*80,bL:1,bR:-1,rot:sn*2});
+      const fc=F({smile:.35,sweat:.7,eye:t<4?1:1.15,brow:.2,blush:.8,lx:t>2.5?.6:0,open:t>2.6&&t<4?.25:0});
+      world+=drawPerson({x:540,y:GROUND-Math.abs(sn)*16,pose,face:fc,t,hairSwing:sn*10});
+    }
+  }
+  // ===== Scene 2: three versions (6–15) =====
+  if(t>=6.0&&t<15.6){
+    const out=t>14.8?ein(seg(t,14.8,15.3)):0;
+    // clone 1 — gym bag (the runner hops over to the left)
+    {
+      const hop=seg(t,6.0,6.6);
+      let x=lerp(540,200,eio(hop)), y=GROUND-Math.sin(hop*Math.PI)*170, pose;
+      if(hop<1) pose=POSE.jump;
+      else if(t<9.8) pose=kf(t,[[6.6,POSE.bag],[7.0,POSE.bagUp,back],[8.8,POSE.bagUp],[9.3,POSE.bag]]);
+      else pose=Object.assign({},POSE.tired,{hRx:150,hRy:-300,bR:-1});
+      let fc=t<9.8?F({smile:.9,eye:1.1,blush:.8}):F({eye:.45,sad:.8,smile:-.3,sweat:.8,ly:.6});
+      if(t>=6.6&&t<9.8) pose=walkPose(pose,t*9,.0);
+      const s=.86*(1-out);
+      if(s>.02) world+=drawPerson({x,y,s,pose,face:fc,t,holdR:t>6.3?'bag':null});
+      world+=poof(t,6.35,200,GROUND-380,.8)+poof(t,14.85,200,GROUND-380,.8);
+      const dp=pop(t,6.5,.4)*(1-out);
+      if(dp>.02) world+=`<g transform="translate(200 ${GROUND-800}) scale(${R(dp)})">${dayPill('شنبه',C.red)}</g>`;
+    }
+    // clone 2 — writing a strict diet (centre)
+    if(t>7.75){
+      const p=pop(t,7.8,.5);
+      let pose=t<9.8?POSE.write:Object.assign({},POSE.write,{head:7,rot:-2,hLy:-430,hRy:-400});
+      const fc=t<9.8?F({angry:.6,smile:-.1,ly:1,brow:-.2}):F({eye:.45,sad:.8,smile:-.3,sweat:.8,ly:.8});
+      if(t<9.8&&t>8.2) pose=Object.assign({},pose,{hRx:30+Math.sin(t*14)*16,hRy:-450+Math.cos(t*22)*6});
+      const s=.86*Math.min(1,p)*(1-out);
+      if(s>.02) world+=drawPerson({x:540,y:GROUND,s,pose,face:fc,t,holdL:'clip',holdR:'pen',holdOpts:{lines:Math.min(5,Math.floor(seg(t,8.0,9.4)*5)+1)}});
+      world+=poof(t,7.75,540,GROUND-380,.8);
+      const dp=pop(t,8.0,.4)*(1-out);
+      if(dp>.02) world+=`<g transform="translate(540 ${GROUND-800}) scale(${R(dp)})">${dayPill('یکشنبه',C.yel,C.blk)}</g>`;
+    }
+    // clone 3 — tired on Monday, closes coach's message on Tuesday (right)
+    if(t>9.75){
+      const p=pop(t,9.8,.5);
+      let pose, fc;
+      if(t<11.4){pose=POSE.tired;fc=F({eye:.4,sad:.9,smile:-.3,sweat:.8,ly:.8});}
+      else {pose=kf(t,[[11.4,POSE.tired],[11.8,POSE.phone],[12.3,POSE.phone],[12.55,POSE.phoneSwipe,eout],[12.9,POSE.phone]]);
+        fc=t<12.3?F({eye:1.2,brow:.6,lx:-.6,ly:1,awk:1,blush:.9,sweat:.8}):F({smile:.7,eye:.15,blush:1,sweat:.6});
+        if(talkAmt('clone3')) fc=F({eye:.9,blush:1,sweat:.7,brow:.4,sad:.3,open:mouthWave()*.8});}
+      const s=.86*Math.min(1,p)*(1-out);
+      if(s>.02) world+=drawPerson({x:880,y:GROUND,s,pose,face:fc,t,holdR:t>11.5?'phone':null});
+      world+=poof(t,9.75,880,GROUND-380,.8)+poof(t,14.85,880,GROUND-380,.8);
+      // day pill: دوشنبه → سه‌شنبه (flip)
+      const dp=pop(t,9.95,.4)*(1-out);
+      const fl=seg(t,11.35,11.75);const sx=Math.abs(Math.cos(fl*Math.PI));
+      if(dp>.02) world+=`<g transform="translate(880 ${GROUND-800}) scale(${R(dp*Math.max(.02,sx)*100)/100} ${R(dp)})">${fl<.5?dayPill('دوشنبه',C.blue):dayPill('سه‌شنبه',C.navy,C.yel)}</g>`;
+      // coach message card → swiped away
+      if(t>11.75&&t<13.1){
+        const q=pop(t,11.8,.4); const sw=ein(seg(t,12.45,12.9));
+        front+=`<g transform="translate(${R(880-sw*700)} ${R(GROUND-1010-sw*120)}) rotate(${R(-4-sw*40)}) scale(${R(q*(1-sw*.4))})"><rect x="-200" y="-70" width="400" height="140" rx="30" fill="#fff" stroke="${C.blk}" stroke-width="6"/><circle cx="148" cy="0" r="38" fill="${C.yel}" stroke="${C.blk}" stroke-width="4"/>${txt(148,14,'م',40,C.blk,900)}${txt(-20,-12,'مربی:',30,C.blue,900)}${txt(-30,34,'امروز تمرین داری؟',32,C.blk,800)}</g>`;
+      }
+      if(t>12.6&&t<14.9){const q=pop(t,12.65,.4)*(1-ein(seg(t,14.5,14.9)));
+        front+=`<g transform="translate(760 ${GROUND-1020}) scale(${R(q*.95)})">${speech('هفته بعد جبران می‌کنم!',470,38,150)}</g>`;}
+    }
+    // monday zzz
+    if(t>9.9&&t<11.5){const q=win(t,9.95,11.5,.3,.3);
+      for(let i=0;i<3;i++){const u=((t*.8+i/3)%1);front+=txt(300+i*290+u*40,GROUND-900-u*120,'z',40+u*20,'#fff',900,`opacity="${R(q*(1-u))}" stroke="${C.blk}" stroke-width="5" paint-order="stroke"`);}
+    }
+  }
+  // ===== Scene 3: calendar swirl, scale, sigh, sit (15–23) =====
+  // ===== Scene 4: change sign, coach, first step (23–36) =====
+  if(t>=14.9){
+    // the woman (single) — positions
+    let wx=540, wy=GROUND, pose=POSE.stand, fc=F({}), holdR=null, sq=0;
+    const SX=330, BX=790;
+    if(t<15.5){ wx=540; pose=POSE.stand; fc=F({eye:1.2,brow:.5,lx:-.5}); }
+    else if(t<17.6){ // looks around at the swirling pages
+      wx=540; pose=POSE.stand; fc=F({eye:1.25,brow:.6,lx:Math.sin(t*2.2)*1.2,ly:-.6,smile:0});
+    } else if(t<18.2){ // hop on scale
+      const p=seg(t,17.6,18.2); wx=lerp(540,SX,eio(p)); wy=GROUND-Math.sin(p*Math.PI)*140-126*eout(p); pose=POSE.jump; fc=F({eye:1.1});
+    } else if(t<20.0){ // on scale → sigh
+      wx=SX; wy=GROUND-126; pose=kf(t,[[18.2,POSE.stand],[18.6,POSE.stand],[19.2,POSE.sigh]]);
+      fc=t<19.1?F({ly:1.2,smile:0,eye:.9}):F({eye:.15,sad:1,smile:-.4,blush:.3,ly:.4});
+      sq=t<18.4?.12*(1-seg(t,18.2,18.4)):0;
+    } else if(t<20.9){ // walk to bench
+      const p=seg(t,20.0,20.9); wx=lerp(SX,BX,eio(p)); wy=lerp(GROUND-126,GROUND,eout(seg(t,20,20.3))); pose=walkPose(POSE.sigh,t*11,1-p*.5); fc=F({sad:1,smile:-.4,eye:.6,ly:.8});
+    } else if(t<23.6){ // sits, head in hands
+      wx=BX; pose=kf(t,[[20.9,POSE.stand],[21.6,POSE.sit],[22.0,POSE.sit],[22.5,POSE.sitHead]]);
+      fc=F({sad:1,smile:-.5,eye:.5,ly:.9,blush:.2});
+      if(t>23.1) fc=F({sad:.4,smile:0,eye:1.2,brow:.6,lx:-1,ly:-.6});
+      if(t>23.0) pose=kf(t,[[23.0,POSE.sitHead],[23.5,POSE.sit]]);
+    } else if(t<24.3){ // stand up
+      wx=BX; pose=kf(t,[[23.6,POSE.sit],[24.2,POSE.stand]]); fc=F({eye:1.1,brow:.4,lx:-1,smile:.2});
+    } else if(t<25.6){ // walk to the street sign
+      const p=seg(t,24.3,25.6); wx=lerp(BX,300,eio(p)); pose=walkPose(POSE.stand,t*11,1-ein(p)); fc=F({eye:1,lx:-1,smile:.4,brow:.3});
+    } else if(t<27.1){ // flip the sign
+      wx=300; pose=kf(t,[[25.6,POSE.stand],[25.95,POSE.reach,eout],[26.6,POSE.reach],[27.0,POSE.stand]]);
+      fc=t<26.4?F({eye:1,lx:-1,ly:-1.2,smile:.5}):F({smile:1,eye:.15,blush:1});
+    } else if(t<28.1){ // walk back next to coach
+      const p=seg(t,27.1,28.1); wx=lerp(300,470,eio(p)); pose=walkPose(POSE.stand,t*11,1-ein(p)); fc=F({smile:.8,lx:1,blush:.8});
+    } else if(t<33.2){ // writes the first step
+      wx=470; pose=POSE.pen; holdR=null; fc=F({smile:.6,ly:-1.2,lx:.4,blush:.7,eye:1});
+      if(t>32.8) fc=F({smile:1,eye:.15,blush:1});
+    } else { // cheer
+      wx=470; pose=kf(t,[[33.2,POSE.pen],[33.7,POSE.cheer,back]]); fc=F({smile:1,eye:.15,blush:1,open:.4});
+      wy=GROUND-Math.max(0,Math.sin((t-33.7)*7))*40*seg(t,33.7,34);
+    }
+
+    // props: scale + bench
+    const scaleS=Math.min(pop(t,17.1,.4),1-ein(seg(t,23.4,23.8)));
+    const scaleSq=t>18.2&&t<18.45?.14*(1-seg(t,18.2,18.45)):0;
+    if(t>17.0) world+=`<g transform="translate(${SX} ${GROUND}) scale(${R(1+scaleSq)} ${R(1-scaleSq)}) translate(${-SX} ${-GROUND})">${drawScale(SX,GROUND,scaleS,t<18.3?'۰٫۰':(t<18.8?fa((60+((Math.floor(t*23)*37)%200)/10).toFixed(1)):'۶۸٫۵'))}</g>`;
+    world+=poof(t,23.45,SX,GROUND-80,.7);
+    if(t>19.6&&t<25.2){const bx=t<24.4?lerp(1500,BX,eout(seg(t,19.6,20.6))):lerp(BX,1600,ein(seg(t,24.4,25.1))); world+=bench(bx,GROUND);}
+
+    // coach
+    if(t>24.2){
+      const p=seg(t,24.3,25.9); const cx=lerp(1300,780,eout(p));
+      let cpose=walkPose(POSE.stand,t*11,1-p);
+      let cfc=F({smile:.7,lx:-1,brow:.2});
+      if(t>26.4&&t<27.4) {cpose=kf(t,[[26.4,POSE.stand],[26.8,POSE.thumbs,back]]);cfc=F({smile:1,eye:.15});}
+      if(t>=27.4) cpose=kf(t,[[27.4,POSE.thumbs],[27.8,POSE.hips]]);
+      if(t>28.2) cfc=F({smile:.7,lx:-1,ly:-1.2});
+      if(t>33.2){cpose=kf(t,[[33.2,POSE.hips],[33.7,POSE.thumbs,back]]);cfc=F({smile:1,eye:.15});}
+      world+=drawPerson({x:cx,y:GROUND,s:.97,pose:cpose,face:cfc,t:t+1.1,look:LOOK_COACH});
+      const tag=pop(t,25.0,.4)*(1-seg(t,28.0,28.3));
+      if(tag>.02) front+=`<g transform="translate(${R(cx)} ${GROUND-930}) scale(${R(tag)})">${dayPill('مربی',C.yel,C.blk)}</g>`;
+    }
+
+    // calendar pages orbit (behind/in front by depth)
+    if(t>15.0&&t<24.6){
+      const appear=seg(t,15.0,15.9);
+      // angle: accelerate, then decelerate to a stop at 23
+      const ang=(tt)=>{const a=clamp(tt,15,23);return 1.4*(a-15)+0.9*Math.pow(clamp(a-15,0,5),1.6)*(a<20?1:1)-(a>20?1.2*Math.pow(a-20,2):0);};
+      const A=ang(t);
+      const fall=seg(t,23.2,24.5);
+      const cxw=wx, cyw=GROUND-470;
+      for(let i=0;i<9;i++){
+        const a=A+i/9*Math.PI*2;
+        let x=cxw+Math.cos(a)*400*appear, y=cyw+Math.sin(a)*150*appear-60*Math.sin(a*2+i);
+        const depth=Math.sin(a);
+        let rot=Math.sin(a*1.3+i)*25 + (t>23.2?fall*(i%2?120:-120):0);
+        y+=fall*fall*900; x+=fall*(i-4)*30;
+        const sc=(.8+depth*.18)*Math.min(1,appear*1.4)*(1-fall*.4);
+        const op=1-seg(t,23.9,24.5);
+        const g=`<g transform="translate(${R(x)} ${R(y)}) rotate(${R(rot)}) scale(${R(sc*100)/100})" opacity="${R(op)}">${calPage(i+Math.floor(Math.max(0,A-1)/(Math.PI*2))*9)}</g>`;
+        if(depth<0) world+=g; else front+=g;
+      }
+      // motion streaks
+      if(t>16&&t<22.8){for(let k=0;k<3;k++){const a=A*1.0+k*2.1;front+=`<path d="M${R(cxw+Math.cos(a)*470)} ${R(cyw+Math.sin(a)*190)} A470 190 0 0 1 ${R(cxw+Math.cos(a+.6)*470)} ${R(cyw+Math.sin(a+.6)*190)}" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="20 16" opacity=".75"/>`;}}
+    }
+    // sigh puff + question mark
+    if(t>19.1&&t<20.3){const q=seg(t,19.1,20.3);front+=`<g transform="translate(${R(SX+110+q*80)} ${R(GROUND-126-640-q*60)}) scale(${R(eout(q)*1.1)})" opacity="${R(1-q)}">${bubbleShape([[0,0,30],[30,-10,22],[-26,-8,20]],4)}</g>`;}
+    if(t>20.9&&t<23.3){const q=pop(t,21.2,.5)*(1-ein(seg(t,22.9,23.3)));front+=`<g transform="translate(${R(BX+150)} ${R(GROUND-860+Math.sin(t*3)*10)}) scale(${R(q)}) rotate(${R(Math.sin(t*2.4)*8)})">${txt(0,40,'؟',170,C.yel,900,`stroke="${C.blk}" stroke-width="8" paint-order="stroke"`)}</g>`;}
+
+    if(t<33.6||true) world+=drawPerson({x:wx,y:wy,pose,face:fc,t,holdR,squash:sq,holdL:(t>28.1&&t<33.6)?'pen':null});
+  }
+  world+=front;
+
+  // ---------- screen space ----------
+  if(t>28.0&&t<34.6){
+    const p=back(seg(t,28.05,28.7)); const fold=seg(t,33.3,33.7);
+    if(fold<1) scr+=`<g transform="translate(540 ${R(lerp(1300,420,p))}) rotate(${R(-2+(1-p)*8)}) scale(${R(.78*(1-fold*.85))} ${R(.78*(1-fold))})">${notepad(t)}</g>`;
+    if(t>33.5){const u=eio(seg(t,33.5,34.6));const x=lerp(540,1300,u),y=lerp(420,60,u)-Math.sin(u*Math.PI)*120;
+      scr+=`<g transform="translate(${R(x)} ${R(y)}) rotate(${R(-20+u*10)}) scale(${R(1.2*pop(t,33.5,.3))})">${paperPlane()}</g>`;}
+  }
+  const camT=`translate(540 960) scale(${R(cam.z*1000)/1000}) translate(${R(-cam.cx)} ${R(-cam.cy)})`;
+  return {world,scr,camT};
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+const $=id=>document.getElementById(id);
+const endEl=$('end'), titleEl=$('title');
+endEl.innerHTML='<div class="box"><span>شروع کوچیک؛</span><br><span class="r">ادامه‌ی واقعی.</span></div>';
+function renderAt(T){
+  T=clamp(T,0,DUR); TN=T; const t=T;
+  $('bg').innerHTML=background(t);
+  const dim=.45*eio(seg(t,15.6,17.5))*(1-eio(seg(t,23.0,24.2)));
+  $('dim').setAttribute('opacity',R(dim*100)/100);
+  $('dim2').setAttribute('opacity',R(dim*.35*100)/100);
+  const {world,scr,camT}=scene(t);
+  const w=$('world'); w.setAttribute('transform',camT); w.innerHTML=world;
+  $('screen').innerHTML=scr;
+  renderCaption(t);
+  const tp=win(t,.0,3.2,.01,.4); titleEl.style.opacity=tp; titleEl.style.transform=`translateY(${R((1-tp)*-30)}px)`;
+  const ep=back(seg(t,33.8,34.4)); endEl.style.opacity=seg(t,33.8,34.0);
+  endEl.style.transform=`translateY(${R((1-ep)*-200)}px) rotate(${R(-3+(1-ep)*-6)}deg) scale(${R(.7+.3*ep)})`;
+}
+window.renderAt=renderAt; window.DUR=DUR;
+
+// ---------- player ----------
+const isRender=new URLSearchParams(location.search).has('render');
+if(isRender) document.body.classList.add('render');
+let playing=false, t0=performance.now(), cur=0;
+const fit=()=>{if(isRender)return;const s=Math.min(innerWidth/1080,(innerHeight-64)/1920);$('stage').style.transform=`scale(${s})`;};
+addEventListener('resize',fit);fit();
+const vo=$('vo');
+vo.src='assets/narration.mp3';vo.onerror=()=>vo.removeAttribute('src');
+const syncAudio=()=>{try{if(!vo.getAttribute('src'))return;vo.currentTime=cur;if(playing)vo.play().catch(()=>{});else vo.pause();}catch(e){}};
+$('play').onclick=()=>{playing=!playing;if(playing){if(cur>=DUR)cur=0;t0=performance.now()-cur*1000;}syncAudio();$('play').textContent=playing?'❚❚ Pause':'▶ Play';};
+$('scrub').oninput=e=>{cur=+e.target.value;t0=performance.now()-cur*1000;syncAudio();renderAt(cur);$('time').textContent=cur.toFixed(2)+'s';};
+function loop(){
+  if(playing){cur=(performance.now()-t0)/1000;if(cur>DUR){cur=0;t0=performance.now();syncAudio();}
+    renderAt(cur);$('scrub').value=cur;$('time').textContent=cur.toFixed(2)+'s';}
+  requestAnimationFrame(loop);
+}
+document.fonts.ready.then(()=>{renderAt(0);window.__ready=true;if(!isRender)loop();});
+</script>
+</body>
+</html>
