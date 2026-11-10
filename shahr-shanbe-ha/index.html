@@ -15,8 +15,8 @@ html,body{background:#0d1030;height:100%;overflow:hidden;font-family:Vazirmatn,s
 #cap{position:absolute;left:60px;right:60px;bottom:96px;direction:rtl;pointer-events:none}
 #cap .card{background:#fff;border:6px solid #141414;border-radius:40px;padding:34px 44px 38px;font-weight:800;font-size:54px;line-height:1.55;color:#141414;box-shadow:12px 14px 0 #141414;text-align:center}
 #cap .w{display:inline-block;white-space:pre}
-#end{position:absolute;left:0;right:0;top:300px;display:flex;justify-content:center;direction:rtl;pointer-events:none}
-#end .box{background:#fff;border:7px solid #141414;border-radius:44px;padding:40px 60px 50px;font-weight:900;font-size:88px;line-height:1.45;color:#141414;text-align:center;box-shadow:16px 18px 0 #141414}
+#end{position:absolute;left:0;right:0;top:190px;display:flex;justify-content:center;direction:rtl;pointer-events:none}
+#end .box{background:#fff;border:6px solid #141414;border-radius:34px;padding:22px 42px 30px;font-weight:900;font-size:58px;line-height:1.45;color:#141414;text-align:center;box-shadow:11px 12px 0 #141414}
 #end .box span{background:linear-gradient(transparent 58%,#F8CB4A 58%,#F8CB4A 92%,transparent 92%)}
 #end .box span.r{background:linear-gradient(transparent 58%,#F37A62 58%,#F37A62 92%,transparent 92%)}
 #title{position:absolute;top:70px;right:60px;direction:rtl;background:#141414;color:#fff;font-weight:900;font-size:46px;border-radius:26px;padding:8px 30px 14px}
@@ -60,16 +60,19 @@ body.render #stage{transform:none!important}
   <div id="cap"></div>
   <div id="end"></div>
 </div></div>
-<audio id="vo" preload="auto"></audio>
-<div id="ui"><button id="play">▶ Play</button><input id="scrub" type="range" min="0" max="36" step="0.01" value="0"><span id="time">0.00s</span></div>
+<audio id="vo" preload="auto"></audio><audio id="bgm" src="assets/music.mp3" preload="auto"></audio>
+<div id="ui"><button id="play">▶ Play</button><input id="scrub" type="range" min="0" max="35" step="0.01" value="0"><span id="time">0.00s</span></div>
 
 <script>
 // ============================================================
 //  "شهر شنبه‌ها" — 36s motion graphic, 1080x1920 (9:16)
 //  Everything is a pure function of time t → deterministic frames.
 // ============================================================
-const DUR = 36;
-let TN = 0;
+const DUR = 35;
+let TN = 0; // real (audio) time; the animation below is authored on its own timeline and remapped to the voice-over
+// [audio time, animation time] anchors
+const TMAP=[[0,0],[2.42,2.5],[5.6,6.0],[6.0,6.4],[7.2,7.75],[9.1,9.75],[10.9,11.35],[12.1,12.45],[14.2,14.8],[15.0,15.5],[16.6,17.6],[18.1,19.1],[20.2,21.6],[21.7,23.0],[25.5,27.1],[26.3,28.1],[27.3,28.9],[30.3,32.8],[30.9,33.8],[35.0,36.0]];
+function mapTime(T){for(let i=1;i<TMAP.length;i++){const [n1,o1]=TMAP[i],[n0,o0]=TMAP[i-1];if(T<=n1)return o0+(o1-o0)*(T-n0)/(n1-n0);}return TMAP[TMAP.length-1][1];}
 const C = {red:'#EA4B3C', redD:'#C9342B', redL:'#F37A62', yel:'#F8CB4A', org:'#EDA12F', blueL:'#7CC8F8',
   blue:'#3A7BE6', blueD:'#2433A8', pants:'#2B46C8', blk:'#141414', wht:'#FFFFFF', blush:'#F7A3A0', navy:'#1D2340'};
 
@@ -98,11 +101,11 @@ function kf(t, keys){
 
 // ---------- captions: [start, end, text, who?] ----------
 const CAPS=[
-  {a:0.3,b:5.9,chunks:[[0.4,2.3,'به شهر شنبه‌ها خوش اومدی!'],[2.5,5.5,'اینجا همه قراره از شنبه خیلی جدی شروع کنن!']]},
-  {a:6.2,b:14.9,chunks:[[6.4,7.5,'شنبه باشگاه،'],[7.9,9.4,'یکشنبه رژیم سخت،'],[9.9,11.2,'دوشنبه خستگی…'],[11.6,12.4,'سه‌شنبه هم:'],[12.5,14.6,'مربی جان، هفته بعد جبران می‌کنم!','clone3']]},
-  {a:15.3,b:22.9,chunks:[[15.5,18.6,'هفته‌ها می‌گذره و اون می‌مونه با یه سؤال:'],[19.3,22.5,'چرا با اینکه باشگاه می‌رم، هنوز به هدفم نرسیدم؟']]},
-  {a:23.4,b:28.6,chunks:[[23.6,25.9,'این بار دنبال یه شروع بی‌نقص نیست.'],[26.3,28.3,'کمک می‌گیره تا برنامه‌اش شدنی باشه؛']]},
-  {a:28.7,b:33.2,chunks:[[28.9,32.6,'برای روزهای شلوغ و سخت هم، نه فقط شنبه‌ها!']]},
+  {a:0.0,b:5.6,chunks:[[0.09,1.95,'به شهر شنبه‌ها خوش اومدی!'],[2.42,5.38,'اینجا همه قراره از شنبه خیلی جدی شروع کنن!']]},
+  {a:5.8,b:14.6,chunks:[[5.99,7.07,'شنبه باشگاه،'],[7.29,8.79,'یکشنبه رژیم سخت،'],[9.18,10.57,'دوشنبه خستگی…'],[11.06,11.81,'سه‌شنبه هم:'],[12.16,14.12,'مربی جان، هفته بعد جبران می‌کنم!','clone3']]},
+  {a:14.8,b:21.6,chunks:[[15.03,17.42,'هفته‌ها می‌گذره و اون می‌مونه با یه سؤال:'],[18.02,21.28,'چرا با اینکه باشگاه می‌رم، هنوز به هدفم نرسیدم؟']]},
+  {a:21.75,b:27.1,chunks:[[21.94,24.15,'این بار دنبال یه شروع بی‌نقص نیست.'],[24.49,26.88,'کمک می‌گیره تا برنامه‌اش شدنی باشه؛']]},
+  {a:27.15,b:30.6,chunks:[[27.3,30.26,'برای روزهای شلوغ و سخت هم، نه فقط شنبه‌ها!']]},
 ];
 function talkAmt(who){
   for(const c of CAPS) for(const [s0,s1,_x,w] of c.chunks) if(w===who&&TN>=s0&&TN<=s1) return 1;
@@ -606,16 +609,16 @@ const $=id=>document.getElementById(id);
 const endEl=$('end'), titleEl=$('title');
 endEl.innerHTML='<div class="box"><span>شروع کوچیک؛</span><br><span class="r">ادامه‌ی واقعی.</span></div>';
 function renderAt(T){
-  T=clamp(T,0,DUR); TN=T; const t=T;
-  $('bg').innerHTML=background(t);
+  T=clamp(T,0,DUR); TN=T; const t=mapTime(T);
+  $('bg').innerHTML=background(T);
   const dim=.45*eio(seg(t,15.6,17.5))*(1-eio(seg(t,23.0,24.2)));
   $('dim').setAttribute('opacity',R(dim*100)/100);
   $('dim2').setAttribute('opacity',R(dim*.35*100)/100);
   const {world,scr,camT}=scene(t);
   const w=$('world'); w.setAttribute('transform',camT); w.innerHTML=world;
   $('screen').innerHTML=scr;
-  renderCaption(t);
-  const tp=win(t,.0,3.2,.01,.4); titleEl.style.opacity=tp; titleEl.style.transform=`translateY(${R((1-tp)*-30)}px)`;
+  renderCaption(T);
+  const tp=win(T,.0,3.2,.01,.4); titleEl.style.opacity=tp; titleEl.style.transform=`translateY(${R((1-tp)*-30)}px)`;
   const ep=back(seg(t,33.8,34.4)); endEl.style.opacity=seg(t,33.8,34.0);
   endEl.style.transform=`translateY(${R((1-ep)*-200)}px) rotate(${R(-3+(1-ep)*-6)}deg) scale(${R(.7+.3*ep)})`;
 }
@@ -629,7 +632,8 @@ const fit=()=>{if(isRender)return;const s=Math.min(innerWidth/1080,(innerHeight-
 addEventListener('resize',fit);fit();
 const vo=$('vo');
 vo.src='assets/narration.mp3';vo.onerror=()=>vo.removeAttribute('src');
-const syncAudio=()=>{try{if(!vo.getAttribute('src'))return;vo.currentTime=cur;if(playing)vo.play().catch(()=>{});else vo.pause();}catch(e){}};
+const bgm=$('bgm');bgm.volume=.3;
+const syncAudio=()=>{for(const a of [vo,bgm]){try{if(!a.getAttribute('src'))continue;a.currentTime=cur;if(playing)a.play().catch(()=>{});else a.pause();}catch(e){}}};
 $('play').onclick=()=>{playing=!playing;if(playing){if(cur>=DUR)cur=0;t0=performance.now()-cur*1000;}syncAudio();$('play').textContent=playing?'❚❚ Pause':'▶ Play';};
 $('scrub').oninput=e=>{cur=+e.target.value;t0=performance.now()-cur*1000;syncAudio();renderAt(cur);$('time').textContent=cur.toFixed(2)+'s';};
 function loop(){

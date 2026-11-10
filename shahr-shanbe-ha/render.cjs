@@ -16,9 +16,15 @@ const out=process.argv[2]||'shahr-shanbe-ha.mp4', FPS=+(process.argv[3]||30);
   }
   ff.stdin.end();await new Promise(r=>ff.on('close',r));await b.close();
   if(!require('fs').existsSync(path.resolve(__dirname,'assets/narration.mp3'))){console.log('done (no narration) →',out);return;}
-  // mux narrator audio (assets/narration.mp3), padded with silence to the video length
+  // mux narrator voice + background music (ducked under the voice)
   const tmp=out.replace(/\.mp4$/,'')+'.noaudio.mp4';require('fs').renameSync(out,tmp);
-  await new Promise(r=>spawn('ffmpeg',['-y','-loglevel','error','-i',tmp,'-i',path.resolve(__dirname,'assets/narration.mp3'),
-    '-map','0:v','-map','1:a','-c:v','copy','-c:a','aac','-b:a','192k','-af','apad','-t',String(dur),'-movflags','+faststart',out],{stdio:'inherit'}).on('close',r));
+  const music=path.resolve(__dirname,'assets/music.mp3'), hasMusic=require('fs').existsSync(music);
+  const args=['-y','-loglevel','error','-i',tmp,'-i',path.resolve(__dirname,'assets/narration.mp3')];
+  let fc;
+  if(hasMusic){args.push('-i',music);
+    fc=`[1:a]aformat=sample_rates=44100:channel_layouts=stereo,apad,asplit=2[v1][v2];[2:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=0.09,afade=t=out:st=${dur-2.5}:d=2.5[m];[m][v2]sidechaincompress=threshold=0.02:ratio=5:attack=30:release=600[md];[v1][md]amix=inputs=2:normalize=0:duration=first,volume=2.2,alimiter=limit=0.95[a]`;}
+  else fc='[1:a]apad[a]';
+  args.push('-filter_complex',fc,'-map','0:v','-map','[a]','-c:v','copy','-c:a','aac','-b:a','192k','-t',String(dur),'-movflags','+faststart',out);
+  await new Promise(r=>spawn('ffmpeg',args,{stdio:'inherit'}).on('close',r));
   require('fs').unlinkSync(tmp);console.log('done →',out);
 })();
