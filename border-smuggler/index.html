@@ -22,10 +22,15 @@
    Optional photo backgrounds: put assets/bg-border.jpg and/or
    assets/bg-village.jpg (1620x2400, ground line around y=1460+240) and
    they replace the procedurally painted backgrounds. */
-const W = 1080, H = 1920, DURATION = 43.0;
+const W = 1080, H = 1920;
 // ---------------------------------------------------------------- language (?lang=en | fa)
 const LANG = new URLSearchParams(location.search).get('lang') || 'fa';
 const DIR = LANG === 'fa' ? 'rtl' : 'ltr';
+// per-language timeline (the English voice-over is shorter than the Persian one)
+const TL = LANG === 'en'
+  ? { bubbleEnd: 24.7, sack0: 32.6, sack1: 33.8, reveal: 34.4, s7: 37.0, dur: 41.0 }
+  : { bubbleEnd: 25.35, sack0: 33.7, sack1: 35.0, reveal: 36.75, s7: 39.1, dur: 43.0 };
+const DURATION = TL.dur;
 // display = big comic titles/tags, body = captions & bubble text
 function F(weight, size, kind = 'display') {
   if (LANG === 'fa') return `${weight} ${size}px Vazir`;
@@ -56,9 +61,9 @@ const TX = {
       [5.63, 'The *guard* was sure something was up!', 7.66], [8.33, 'Every time, he emptied the sacks…', 10.65],
       [11.0, '…but found nothing but *sand.*', 12.66], [12.83, '*The next month,* the same man again,', 15.15],
       [15.36, 'the same sacks…', 16.45], [16.78, 'and *sand* once again!', 18.3], [18.95, 'Each inspection got *tougher,*', 20.62],
-      [20.94, 'but he never found a thing.', 22.46], [25.41, 'But he *never* figured it out…', 26.95],
-      [28.03, 'Because all along, he was searching the *sacks* for contraband…', 31.61],
-      [33.72, 'when the contraband…', 35.07], [36.8, 'was the *bicycles* themselves!', 38.22],
+      [20.94, 'but he never found a thing.', 22.46], [24.8, 'But he *never* figured it out…', 26.34],
+      [28.4, 'Because all along, he was searching the *sacks* for contraband…', 31.98],
+      [32.6, 'when the contraband…', 33.95], [34.03, 'was the *bicycles* themselves!', 35.45],
     ],
   },
 };
@@ -969,7 +974,7 @@ const SCENES = [
     if (shrug > .05) { drawBike(ctx, bike); drawPerson(ctx, M); }
     else { drawPerson(ctx, M, 'body'); drawBike(ctx, bike); drawPerson(ctx, M, 'front'); }
     frontFog(ctx, t);
-    bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, 25.35, .3, .25));
+    bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, TL.bubbleEnd, .3, .25));
     tag(ctx, TT.border, 670, 1575, 58, popIn(t, 27.5, 28.0, .3, .15), '#ffd23f');
   } },
   // 5 — the other side: the sale
@@ -997,15 +1002,15 @@ const SCENES = [
     stamp(ctx, TT.sold, 540, 520, 96, popIn(t, 29.7, 31.3, .35, .2));
   } },
   // 6 — flashback panels & reveal
-  { a: 31.3, b: 39.1, draw(t) {
+  { a: 31.3, b: TL.s7, draw(t) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     // blurred dim backdrop
     ctx.save(); ctx.filter = 'blur(10px) brightness(.45) saturate(.6)';
     setCam(ctx, 540, 1100, 1.0);
     ctx.drawImage(BG.border, WX0, WY0, WW, WH);
     ctx.restore(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const reveal = seg(t, 36.75, 37.1);
-    const sackA = 1 - easeIO(seg(t, 33.7, 35.0));
+    const reveal = seg(t, TL.reveal, TL.reveal + .35);
+    const sackA = 1 - easeIO(seg(t, TL.sack0, TL.sack1));
     const cols = ['red', 'blue', 'black'], labels = TT.bikes;
     const zp = .5;
     for (let i = 0; i < 3; i++) {
@@ -1031,7 +1036,7 @@ const SCENES = [
       ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
       ctx.setTransform(zp, 0, 0, zp, px + pw / 2 - 560 * zp, py + ph / 2 - 1360 * zp);
       const sep = '#8a6f50';
-      const pulse = reveal > 0 ? (.75 + .25 * Math.sin((t - 36.75) * 8)) * reveal : 0;
+      const pulse = reveal > 0 ? (.75 + .25 * Math.sin((t - TL.reveal) * 8)) * reveal : 0;
       drawBike(ctx, { x: INS.bikeX, y: GY, color: reveal > 0 ? mixHex(sep, BIKE_COL[cols[i]], reveal) : sep, highlight: reveal > .5 ? BIKE_HI[cols[i]] : null,
         sacks: sackA, open: 1, sackTint: '#a8916c', glow: pulse, glowColor: '#ffe27a' });
       ctx.restore();
@@ -1039,13 +1044,13 @@ const SCENES = [
       // film scratches on the old footage
       ctx.save(); ctx.globalAlpha = .25 * (1 - reveal); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
       const sxp = px + ((t * 997 + i * 300) % pw); ctx.beginPath(); ctx.moveTo(sxp, py); ctx.lineTo(sxp + 6, py + ph); ctx.stroke(); ctx.restore();
-      tag(ctx, labels[i], px + 150, py + ph / 2 + 30, 56, popIn(t, 36.85 + i * .15, 39.1, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
+      tag(ctx, labels[i], px + 150, py + ph / 2 + 30, 56, popIn(t, TL.reveal + .1 + i * .15, TL.s7, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
     }
   } },
   // 7 — punchline: the guard is still sieving
-  { a: 39.1, b: 43.0, draw(t) {
+  { a: TL.s7, b: TL.dur, draw(t) {
     const [sx, sy] = shake(t, 2.5);
-    setCam(ctx, 560, lerp(1320, 1280, seg(t, 39.1, 43)), lerp(1.12, 1.2, seg(t, 39.1, 43)), sx, sy);
+    setCam(ctx, 560, lerp(1320, 1280, seg(t, TL.s7, TL.dur)), lerp(1.12, 1.2, seg(t, TL.s7, TL.dur)), sx, sy);
     drawBg(ctx, 'border', t);
     sandPile(ctx, 560, GY + 6, 380, 120);
     sandPile(ctx, 820, GY + 10, 200, 50);
@@ -1057,10 +1062,10 @@ const SCENES = [
     drawSieve(ctx, sxv, syv);
     fly(ctx, 470, 1010, t, 0); fly(ctx, 520, 980, t + 1.3, 1);
     frontFog(ctx, t);
-    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, 39.55, 43.5, .45, .1));
-    const st = popIn(t, 39.9, 43.5, .4, .1);
+    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, TL.s7 + .45, TL.dur + .5, .45, .1));
+    const st = popIn(t, TL.s7 + .8, TL.dur + .5, .4, .1);
     if (st) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
-      const p = easeOut(seg(t, 39.9, 40.5)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
+      const p = easeOut(seg(t, TL.s7 + .8, TL.s7 + 1.4)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
   } },
 ];
 let PANELS = [];
@@ -1084,7 +1089,7 @@ function renderFrame(t) {
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[Math.floor(t * 24) % 4], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
   // cut flashes (quick white dip) & fades
   for (const s of SCENES.slice(1)) { const d = Math.abs(t - s.a); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .55})`; ctx.fillRect(0, 0, W, H); } }
-  const fin = 1 - seg(t, 0, .5), fout = seg(t, 42.2, 43);
+  const fin = 1 - seg(t, 0, .5), fout = seg(t, TL.dur - .8, TL.dur);
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }
 
@@ -1095,7 +1100,7 @@ async function init() {
   BG.village = pv || paintBackground('village');
   paintFx();
   PANELS = [0, 1, 2].map(() => mk(960, 410));
-  window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
+  window.renderFrame = renderFrame; window.DURATION = DURATION; window.TL = TL; window.ready = true;
   const q = new URLSearchParams(location.search);
   if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }

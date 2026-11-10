@@ -14,7 +14,8 @@ import wave
 import numpy as np
 
 SR = 44100
-DURATION = 43.0
+ARGS = dict(a.split('=') for a in sys.argv[2:])
+DURATION = float(ARGS.get('dur', 43.0))
 BPM = 96
 BEAT = 60.0 / BPM
 N = int(SR * DURATION)
@@ -112,9 +113,9 @@ music = Track()
 # ---------------------------------------------------------------- beat
 # Boom-bap "detective" groove in D minor. Bar grid is anchored so that the
 # reveal (36.75s) lands exactly on a downbeat.
-GUARD_START, GUARD_END = 22.5, 25.3   # break under the guard's line
-REVEAL = 36.75                        # «خودِ دوچرخه‌ها بودن!» / "was the bicycles themselves!"
-END_CHORD = 41.0
+GUARD_START, GUARD_END = 22.5, float(ARGS.get('guardEnd', 25.3))   # break under the guard's line
+REVEAL = float(ARGS.get('reveal', 36.75))                        # «خودِ دوچرخه‌ها بودن!» / "was the bicycles themselves!"
+END_CHORD = DURATION - 2.0
 OFFSET = 0.30
 BAR = (REVEAL - OFFSET) / 14          # ≈ 2.604s → ~92 BPM
 S16 = BAR / 16
@@ -321,9 +322,9 @@ events = [
     (29.7, bell(midi(88), 0.8, 0.25), 0.25, 0.3),   # cash
     (29.85, bell(midi(93), 0.9, 0.3), 0.25, 0.3),
     (31.4, whoosh(0.9), 0.35, 0),     # into flashback
-    (33.9, whoosh(0.6), 0.25, 0),     # sacks fade away
-    (39.2, whoosh(0.5), 0.3, 0),
-    (39.6, pop(), 0.5, 0),            # final text
+    (float(ARGS.get('sack0', 33.7)) + .2, whoosh(0.6), 0.25, 0),     # sacks fade away
+    (float(ARGS.get('s7', 39.1)) + .1, whoosh(0.5), 0.3, 0),
+    (float(ARGS.get('s7', 39.1)) + .5, pop(), 0.5, 0),            # final text
 ]
 for at, sig, g, p in events:
     sfx.add(sig, at, g, p)

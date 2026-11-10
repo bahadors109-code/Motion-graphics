@@ -37,6 +37,7 @@ async function stills(ts) {
 async function video() {
   const { browser, p } = await page();
   const duration = await p.evaluate(() => window.DURATION);
+  const tl = await p.evaluate(() => window.TL);
   const frames = Math.round(duration * FPS);
   const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
@@ -51,18 +52,20 @@ async function video() {
   await new Promise(r => ff.on('close', r));
   await browser.close();
 
-  await mux(duration);
+  await mux(tl);
 }
 
 // audio: narration split at 22.1s so the guard's line gets a 2.6s gap,
 // music ducked under the voice, then loudness-normalised to -15 LUFS.
-async function mux(duration = 43) {
+async function mux(tl) {
+  if (!tl) { const { browser, p } = await page(); tl = await p.evaluate(() => window.TL); await browser.close(); }
+  const duration = tl.dur;
   const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
-  execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
+  execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD, `dur=${tl.dur}`, `reveal=${tl.reveal}`, `guardEnd=${tl.bubbleEnd}`, `sack0=${tl.sack0}`, `s7=${tl.s7}`], { stdio: 'inherit' });
   // narration phrases: [audioStart, audioEnd, offset] — each phrase is moved onto its scene
   const NAR = {
     fa: { file: 'narration.mp3', segs: [[0, 22.1, 0.5], [22.1, 99, 3.1]] },
-    en: { file: 'narration-en.mp3', segs: [[0, 12.65, 0.35], [12.65, 22.9, -0.15], [22.9, 25.1, 2.19], [25.1, 29.1, 2.73], [29.1, 30.64, 4.47], [30.64, 99, 6.12]] },
+    en: { file: 'narration-en.mp3', segs: [[0, 12.65, 0.35], [12.65, 22.9, -0.15], [22.9, 25.1, 1.58], [25.1, 29.1, 3.10], [29.1, 99, 3.35]] },
   }[LANG];
   const nar = path.join(ROOT, 'assets', NAR.file);
   const parts = NAR.segs.map(([a, b, o], k) =>
