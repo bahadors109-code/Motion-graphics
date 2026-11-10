@@ -28,9 +28,11 @@ const LANG = new URLSearchParams(location.search).get('lang') || 'fa';
 const DIR = LANG === 'fa' ? 'rtl' : 'ltr';
 // per-language timeline (the English voice-over is shorter than the Persian one)
 const TL = LANG === 'en'
-  ? { bubbleEnd: 25.0, sack0: 32.6, sack1: 33.8, reveal: 34.4, s7: 37.0, dur: 41.0 }
-  : { bubbleEnd: 25.35, sack0: 33.7, sack1: 35.0, reveal: 36.75, s7: 39.1, dur: 43.0 };
-const DURATION = TL.dur;
+  // English: the guard's line moves to the final shot; the mid-video pause (anim 22.9–24.6) is skipped
+  ? { bubble: false, endBubble: true, warpAt: 22.9, warp: 1.7, bubbleEnd: 25.0, sack0: 32.6, sack1: 33.8, reveal: 34.4, s7: 37.0, dur: 43.3 }
+  : { bubble: true, endBubble: false, warpAt: 999, warp: 0, bubbleEnd: 25.35, sack0: 33.7, sack1: 35.0, reveal: 36.75, s7: 39.1, dur: 43.0 };
+const DURATION = TL.dur - TL.warp;           // output length
+const animT = t => t >= TL.warpAt ? t + TL.warp : t;
 // display = big comic titles/tags, body = captions & bubble text
 function F(weight, size, kind = 'display') {
   if (LANG === 'fa') return `${weight} ${size}px Vazir`;
@@ -61,9 +63,9 @@ const TX = {
       [5.55, 'The *guard* was sure something was up!', 7.58], [8.18, 'Every time, he emptied the sacks…', 10.5],
       [10.91, '…but found nothing but *sand.*', 12.52], [12.83, '*The next month,* the same man again,', 15.1],
       [15.37, 'the same sacks…', 16.5], [16.83, 'and *sand* once again!', 18.3], [18.93, 'Each inspection got *tougher,*', 20.61],
-      [20.94, 'but he never found a thing.', 22.48], [25.0, 'But he *never* figured it out…', 26.63],
-      [28.4, 'Because all along, he was searching the *sacks* for contraband…', 31.96],
-      [32.6, 'when the contraband…', 33.9], [33.97, 'was the *bicycles* themselves!', 35.39],
+      [20.94, 'but he never found a thing.', 22.48], [23.2, 'But he *never* figured it out…', 24.83],
+      [26.7, 'Because all along, he was searching the *sacks* for contraband…', 30.26],
+      [30.9, 'when the contraband…', 32.2], [32.27, 'was the *bicycles* themselves!', 33.69],
     ],
   },
 };
@@ -974,7 +976,7 @@ const SCENES = [
     if (shrug > .05) { drawBike(ctx, bike); drawPerson(ctx, M); }
     else { drawPerson(ctx, M, 'body'); drawBike(ctx, bike); drawPerson(ctx, M, 'front'); }
     frontFog(ctx, t);
-    bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, TL.bubbleEnd, .3, .25));
+    if (TL.bubble) bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, TL.bubbleEnd, .3, .25));
     tag(ctx, TT.border, 670, 1575, 58, popIn(t, 27.5, 28.0, .3, .15), '#ffd23f');
   } },
   // 5 — the other side: the sale
@@ -1054,7 +1056,8 @@ const SCENES = [
     drawBg(ctx, 'border', t);
     sandPile(ctx, 560, GY + 6, 380, 120);
     sandPile(ctx, 820, GY + 10, 200, 50);
-    const G = { kind: 'guard', x: 420, y: GY, s: 1, face: 1, expr: 'focused', look: [3, 8], sweat: t, arms: {} };
+    const talking = TL.endBubble && t > TL.s7 + .3 && t < TL.s7 + 2.5;
+    const G = { kind: 'guard', x: 420, y: GY, s: 1, face: 1, expr: talking ? 'angry' : 'focused', look: talking ? [5, -2] : [3, 8], sweat: t, arms: {} };
     const sxv = 560 + Math.sin(t * 30) * 14, syv = 1335;
     G.arms.front = { t: [sxv + 95, syv + 4] }; G.arms.back = { t: [sxv - 100, syv + 4] };
     drawPerson(ctx, G, 'body'); drawPerson(ctx, G, 'front');
@@ -1062,20 +1065,23 @@ const SCENES = [
     drawSieve(ctx, sxv, syv);
     fly(ctx, 470, 1010, t, 0); fly(ctx, 520, 980, t + 1.3, 1);
     frontFog(ctx, t);
-    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, TL.s7 + .45, TL.dur + .5, .45, .1));
-    const st = popIn(t, TL.s7 + .8, TL.dur + .5, .4, .1);
+    if (TL.endBubble) bubble(ctx, 580, 360, 960, 230, [400, 560], TT.bubble, popIn(t, TL.s7 + .3, TL.s7 + 2.6, .3, .25));
+    const et = TL.endBubble ? TL.s7 + 2.7 : TL.s7 + .45;
+    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, et, TL.dur + .5, .45, .1));
+    const st = popIn(t, et + .35, TL.dur + .5, .4, .1);
     if (st) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
-      const p = easeOut(seg(t, TL.s7 + .8, TL.s7 + 1.4)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
+      const p = easeOut(seg(t, et + .35, et + .95)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
   } },
 ];
 let PANELS = [];
 
 function renderFrame(t) {
+  const to = t; t = animT(t);   // to = output time (captions, fades), t = animation time
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   const sc = SCENES.find(s => t >= s.a && t < s.b) || SCENES[SCENES.length - 1];
   ctx.save(); sc.draw(t); ctx.restore();
-  captions(ctx, t);
+  captions(ctx, to);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   // ambient dust motes
   for (let i = 0; i < 40; i++) {
@@ -1089,7 +1095,7 @@ function renderFrame(t) {
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[Math.floor(t * 24) % 4], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
   // cut flashes (quick white dip) & fades
   for (const s of SCENES.slice(1)) { const d = Math.abs(t - s.a); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .55})`; ctx.fillRect(0, 0, W, H); } }
-  const fin = 1 - seg(t, 0, .5), fout = seg(t, TL.dur - .8, TL.dur);
+  const fin = 1 - seg(to, 0, .5), fout = seg(to, DURATION - .8, DURATION);
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }
 

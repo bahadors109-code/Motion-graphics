@@ -15,7 +15,11 @@ import numpy as np
 
 SR = 44100
 ARGS = dict(a.split('=') for a in sys.argv[2:])
-DURATION = float(ARGS.get('dur', 43.0))
+W_AT, W = float(ARGS.get('warpAt', 999)), float(ARGS.get('warp', 0))
+O = lambda t: t - W if t >= W_AT else t   # animation time -> output time
+BUBBLE = ARGS.get('bubble', 'true') == 'true'
+END_BUBBLE = ARGS.get('endBubble', 'false') == 'true'
+DURATION = O(float(ARGS.get('dur', 43.0)))
 BPM = 96
 BEAT = 60.0 / BPM
 N = int(SR * DURATION)
@@ -113,8 +117,8 @@ music = Track()
 # ---------------------------------------------------------------- beat
 # Boom-bap "detective" groove in D minor. Bar grid is anchored so that the
 # reveal (36.75s) lands exactly on a downbeat.
-GUARD_START, GUARD_END = 22.5, float(ARGS.get('guardEnd', 25.3))   # break under the guard's line
-REVEAL = float(ARGS.get('reveal', 36.75))                        # «خودِ دوچرخه‌ها بودن!» / "was the bicycles themselves!"
+GUARD_START, GUARD_END = 22.5, (float(ARGS.get('guardEnd', 25.3)) if BUBBLE else 22.5)   # break under the guard's line
+REVEAL = O(float(ARGS.get('reveal', 36.75)))                        # «خودِ دوچرخه‌ها بودن!» / "was the bicycles themselves!"
 END_CHORD = DURATION - 2.0
 OFFSET = 0.30
 BAR = (REVEAL - OFFSET) / 14          # ≈ 2.604s → ~92 BPM
@@ -185,7 +189,7 @@ for bi in range(n_bars):
         break
     root, chord = prog[bi % 4]
     intro = bs < 5.4                 # intro: no snare/bass, light drums
-    build = 31.3 <= bs < REVEAL - .01  # build-up: thinner, snare roll at the end
+    build = O(31.3) <= bs < REVEAL - .01  # build-up: thinner, snare roll at the end
     post = bs >= REVEAL - .01
     # drums
     for st in range(16):
@@ -216,7 +220,7 @@ for bi in range(n_bars):
         for m in chord:
             music.add(rhodes(midi(m - (0 if not post else -0)), BAR * .45), tt_, .07, -.2)
     # lead motif (sneaky) in the main sections and after the drop
-    if (5.4 <= bs < 31.3 or post) and bi % 2 == 1 or post:
+    if (5.4 <= bs < O(31.3) or post) and bi % 2 == 1 or post:
         for st, m in LEAD[(bi // 2) % 2]:
             tt_ = step_t(bs, st)
             if tt_ >= END_CHORD - .05 or in_break(tt_):
@@ -233,20 +237,22 @@ while roll_start + k * S16 / 2 < REVEAL - .02:
 # break under the guard's line: tick-tock + filtered keys
 tt_ = GUARD_START + .05
 k = 0
-while tt_ < GUARD_END - .1:
+while BUBBLE and tt_ < GUARD_END - .1:
     music.add(noise_hit(.05, 2500 if k % 2 else 3500, 8000, .01), tt_, .3, -.3 if k % 2 else .3)
     tt_ += BAR / 8
     k += 1
-music.add(rhodes(midi(57), 2.6) + rhodes(midi(61), 2.6) + rhodes(midi(64), 2.6), GUARD_START, .09)
+if BUBBLE:
+    music.add(rhodes(midi(57), 2.6) + rhodes(midi(61), 2.6) + rhodes(midi(64), 2.6), GUARD_START, .09)
 # tape-stop style dip into the break: low boom
 n = int(.6 * SR); t_ = np.arange(n) / SR
-music.add(np.sin(2 * np.pi * (60 * t_ - 20 * t_ * t_)) * np.exp(-t_ * 4), GUARD_START, .5)
+if BUBBLE:
+    music.add(np.sin(2 * np.pi * (60 * t_ - 20 * t_ * t_)) * np.exp(-t_ * 4), GUARD_START, .5)
 
 # riser into the reveal
-rn = int((REVEAL - 31.3) * SR)
+rn = int((REVEAL - O(31.3)) * SR)
 rt = np.arange(rn) / SR
 riser = fft_filter(rng.standard_normal(rn), 500, 7000) * (rt / rt[-1]) ** 2.5
-music.add(riser / np.abs(riser).max(), 31.3, .12)
+music.add(riser / np.abs(riser).max(), O(31.3), .12)
 
 # drop: impact + bright bells
 music.add(K, REVEAL, 1.0); music.add(SN, REVEAL, .5)
@@ -315,7 +321,7 @@ events = [
     (18.6, sand(2.5), 0.32, 0.2),     # sieve
     (20.3, pop(), 0.35, 0),           # «الک ویژه»
     (22.4, noise_hit(0.25, 60, 600, 0.08), 0.8, 0),  # sack thrown down
-    (22.75, pop(), 0.45, 0),          # speech bubble
+    *([(22.75, pop(), 0.45, 0)] if BUBBLE else []),          # speech bubble
     (25.6, whoosh(0.35), 0.25, 0),    # shrug
     (27.6, pop(), 0.35, 0),           # «مرز»
     (28.0, whoosh(), 0.35, -0.3),
@@ -324,9 +330,11 @@ events = [
     (31.4, whoosh(0.9), 0.35, 0),     # into flashback
     (float(ARGS.get('sack0', 33.7)) + .2, whoosh(0.6), 0.25, 0),     # sacks fade away
     (float(ARGS.get('s7', 39.1)) + .1, whoosh(0.5), 0.3, 0),
-    (float(ARGS.get('s7', 39.1)) + .5, pop(), 0.5, 0),            # final text
+    *([(float(ARGS.get('s7', 39.1)) + .35, pop(), 0.45, 0)] if END_BUBBLE else []),   # end speech bubble
+    (float(ARGS.get('s7', 39.1)) + (2.75 if END_BUBBLE else .5), pop(), 0.5, 0),            # final text
 ]
 for at, sig, g, p in events:
+    at = O(at)
     sfx.add(sig, at, g, p)
 sfx_mix = np.stack([sfx.L, sfx.R])
 sfx_mix = sfx_mix / (np.abs(sfx_mix).max() + 1e-9) * 0.6
