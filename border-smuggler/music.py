@@ -109,99 +109,160 @@ def section_gain(t):
 
 music = Track()
 
-# ---------------------------------------------------------------- harmony
-# D minor sneaky progression, one chord per bar (4 beats)
-BAR = 4 * BEAT
-prog = [
-    (50, [62, 65, 69]),  # Dm
-    (50, [62, 65, 69]),  # Dm
-    (46, [58, 62, 65]),  # Bb
-    (45, [57, 61, 64]),  # A
-]
-# walking pizz bass figures (semitones from chord root), 8th notes
-bass_fig = [0, None, 7, None, 12, 11, 7, None]
+# ---------------------------------------------------------------- beat
+# Boom-bap "detective" groove in D minor. Bar grid is anchored so that the
+# reveal (36.75s) lands exactly on a downbeat.
+GUARD_START, GUARD_END = 22.5, 25.3   # break under the guard's line
+REVEAL = 36.75                        # «خودِ دوچرخه‌ها بودن!» / "was the bicycles themselves!"
+END_CHORD = 41.0
+OFFSET = 0.30
+BAR = (REVEAL - OFFSET) / 14          # ≈ 2.604s → ~92 BPM
+S16 = BAR / 16
+SWING = S16 * 0.18
 
-GUARD_START, GUARD_END = 22.5, 25.3   # music drops for guard's line
-REVEAL = 36.75                        # «خودِ دوچرخه‌ها بودن!»
-END_CHORD = 40.9
 
-t = 0.25
-bar_i = 0
-while t < REVEAL - 0.05:
-    root, chord = prog[bar_i % 4]
-    in_gap = GUARD_START <= t < GUARD_END
+def kick():
+    n = int(0.45 * SR); t_ = np.arange(n) / SR
+    body = np.sin(2 * np.pi * (48 * t_ + 110 / 28 * (1 - np.exp(-t_ * 28)))) * np.exp(-t_ * 7)
+    click = rng.standard_normal(n) * np.exp(-t_ * 400) * .3
+    return np.tanh((body + click) * 1.6)
+
+
+def snare():
+    n = int(0.3 * SR); t_ = np.arange(n) / SR
+    nz = fft_filter(rng.standard_normal(n), 1200, 9000)
+    nz = nz / np.abs(nz).max() * np.exp(-t_ * 16)
+    tone = np.sin(2 * np.pi * 185 * t_) * np.exp(-t_ * 25) * .6
+    clap = np.zeros(n)
+    for d in (0, .011, .022):
+        j = int(d * SR); seg_ = fft_filter(rng.standard_normal(n - j), 900, 4000)
+        clap[j:] += seg_ / np.abs(seg_).max() * np.exp(-np.arange(n - j) / SR * 60) * .5
+    return (nz * .8 + tone + clap) * .8
+
+
+def hat(open_=False):
+    d = .25 if open_ else .06
+    return noise_hit(d, 7000, 16000, .09 if open_ else .018)
+
+
+def rhodes(freq, dur):
+    n = int(dur * SR); t_ = np.arange(n) / SR
+    trem = 1 + .25 * np.sin(2 * np.pi * 4.5 * t_)
+    x = (np.sin(2 * np.pi * freq * t_) + .25 * np.sin(2 * np.pi * 2 * freq * t_) * np.exp(-t_ * 3)
+         + .12 * np.sin(2 * np.pi * 7.1 * freq * t_) * np.exp(-t_ * 22))
+    return x * np.exp(-t_ * 1.3) * trem * np.clip(t_ / .005, 0, 1)
+
+
+def bass(freq, dur):
+    n = int(dur * SR); t_ = np.arange(n) / SR
+    x = np.sin(2 * np.pi * freq * t_) + .3 * np.sin(2 * np.pi * 2 * freq * t_) + .1 * np.sin(2 * np.pi * 3 * freq * t_)
+    env = np.clip(t_ / .006, 0, 1) * np.clip((dur - t_) / .03, 0, 1) * (0.75 + .25 * np.exp(-t_ * 8))
+    return np.tanh(x * env * 1.3)
+
+
+K, SN, HC, HO = kick(), snare(), hat(), hat(True)
+prog = [(38, [62, 65, 69, 72]), (38, [62, 65, 69, 72]), (34, [58, 62, 65, 69]), (33, [57, 61, 64, 67])]
+KICKS = [0, 7, 10]               # 16th steps
+KICKS_B = [0, 3, 7, 10, 14]      # busier variation every 4th bar
+BASS = [(0, 0, 3), (3, 0, 1), (7, 7, 2), (10, 12, 2), (13, 10, 2)]   # (step, semitone, length in 16ths)
+LEAD = [[(0, 74), (3, 77), (6, 76), (8, 74), (11, 72), (14, 69)],
+        [(2, 74), (4, 77), (7, 81), (10, 79), (12, 77)]]
+
+
+def in_break(x):
+    return GUARD_START <= x < GUARD_END
+
+
+def step_t(bar_start, st):
+    return bar_start + st * S16 + (SWING if st % 2 else 0)
+
+
+n_bars = int((DURATION - OFFSET) / BAR) + 1
+for bi in range(n_bars):
+    bs = OFFSET + bi * BAR
+    if bs > END_CHORD - .05:
+        break
+    root, chord = prog[bi % 4]
+    intro = bs < 5.4                 # intro: no snare/bass, light drums
+    build = 31.3 <= bs < REVEAL - .01  # build-up: thinner, snare roll at the end
+    post = bs >= REVEAL - .01
+    # drums
+    for st in range(16):
+        tt_ = step_t(bs, st)
+        if tt_ >= END_CHORD - .05 or in_break(tt_):
+            continue
+        kicks = KICKS_B if bi % 4 == 3 else KICKS
+        if st in kicks and not (build and st != 0):
+            music.add(K, tt_, .9 if not intro else .55)
+        if st in (4, 12) and not intro:
+            music.add(SN, tt_, .55, .05)
+        if st % 2 == 0:
+            music.add(HO if (st == 14 and bi % 2) else HC, tt_, (.22 if st % 4 == 0 else .14) * (.7 if intro else 1), .3)
+        elif not intro and not build:
+            music.add(HC, tt_, .07, .3)
     # bass
-    for k, step in enumerate(bass_fig):
-        bt = t + k * BEAT / 2
-        if bt >= REVEAL - 0.05 or step is None:
+    if not intro:
+        for st, semi, ln in BASS:
+            tt_ = step_t(bs, st)
+            if tt_ >= END_CHORD - .05 or in_break(tt_) or (build and st != 0):
+                continue
+            music.add(bass(midi(root + semi), ln * S16 * .95), tt_, .5)
+    # keys: chord stab on 1 and the "and" of 2
+    for st in (0, 6) if not intro else (0,):
+        tt_ = step_t(bs, st)
+        if tt_ >= END_CHORD - .05 or in_break(tt_):
             continue
-        if GUARD_START <= bt < GUARD_END:
-            continue
-        music.add(pluck(midi(root - 12 + step), 0.6, 0.7, 0.22), bt, 0.55, -0.15)
-    # pad (quiet, always – carries the mystery under the guard line)
-    music.add(pad_chord(chord, BAR + 0.6), t, 0.10 if not in_gap else 0.16, 0.0)
-    # high staccato "tip-toe" melody after the intro
-    if t > 5.2 and not in_gap:
-        mel = [chord[2] + 12, None, chord[1] + 12, None, chord[0] + 12, chord[1] + 12, None, chord[2] + 12]
-        if bar_i % 2:
-            mel = [None, chord[0] + 12, None, chord[2] + 12, None, chord[1] + 13, chord[1] + 12, None]
-        for k, m in enumerate(mel):
-            mt = t + k * BEAT / 2
-            if m is None or mt >= REVEAL - 0.1 or GUARD_START <= mt < GUARD_END:
+        for m in chord:
+            music.add(rhodes(midi(m - (0 if not post else -0)), BAR * .45), tt_, .07, -.2)
+    # lead motif (sneaky) in the main sections and after the drop
+    if (5.4 <= bs < 31.3 or post) and bi % 2 == 1 or post:
+        for st, m in LEAD[(bi // 2) % 2]:
+            tt_ = step_t(bs, st)
+            if tt_ >= END_CHORD - .05 or in_break(tt_):
                 continue
-            music.add(pluck(midi(m), 0.35, 1.1, 0.09), mt, 0.16, 0.35)
-    # brushes / shaker on off-beats
-    if t > 5.2:
-        for k in range(8):
-            ht = t + k * BEAT / 2
-            if ht >= REVEAL - 0.1 or GUARD_START <= ht < GUARD_END:
-                continue
-            acc = 0.09 if k % 2 else 0.04
-            music.add(noise_hit(0.12, 5000, 12000, 0.03), ht, acc, 0.25)
-        # soft kick on 1 & 3
-        for k in (0, 4):
-            kt = t + k * BEAT / 2
-            if kt >= REVEAL - 0.1 or GUARD_START <= kt < GUARD_END:
-                continue
-            n = int(0.3 * SR)
-            tt = np.arange(n) / SR
-            kick = np.sin(2 * np.pi * (45 + 60 * np.exp(-tt * 30)) * tt) * np.exp(-tt * 12)
-            music.add(kick, kt, 0.35)
-    t += BAR
-    bar_i += 1
+            music.add(pluck(midi(m + (4 if post and m in (77, 65) else 0) - 12 * 0), .3, 1.1, .1), tt_, .13, .35)
 
-# tick-tock clock during the guard's line (tension)
-tt_ = GUARD_START + 0.1
+# snare roll into the drop
+roll_start = REVEAL - BAR / 2
 k = 0
-while tt_ < GUARD_END - 0.1:
-    music.add(noise_hit(0.05, 2500 if k % 2 else 3500, 8000, 0.01), tt_, 0.22, -0.3 if k % 2 else 0.3)
-    tt_ += BEAT / 2
+while roll_start + k * S16 / 2 < REVEAL - .02:
+    music.add(SN, roll_start + k * S16 / 2, .15 + .45 * (k / 16), .0)
     k += 1
 
+# break under the guard's line: tick-tock + filtered keys
+tt_ = GUARD_START + .05
+k = 0
+while tt_ < GUARD_END - .1:
+    music.add(noise_hit(.05, 2500 if k % 2 else 3500, 8000, .01), tt_, .3, -.3 if k % 2 else .3)
+    tt_ += BAR / 8
+    k += 1
+music.add(rhodes(midi(57), 2.6) + rhodes(midi(61), 2.6) + rhodes(midi(64), 2.6), GUARD_START, .09)
+# tape-stop style dip into the break: low boom
+n = int(.6 * SR); t_ = np.arange(n) / SR
+music.add(np.sin(2 * np.pi * (60 * t_ - 20 * t_ * t_)) * np.exp(-t_ * 4), GUARD_START, .5)
+
 # riser into the reveal
-rn = int((REVEAL - 31.0) * SR)
+rn = int((REVEAL - 31.3) * SR)
 rt = np.arange(rn) / SR
-riser = fft_filter(rng.standard_normal(rn), 400, 6000) * (rt / rt[-1]) ** 2.5
-music.add(riser / np.abs(riser).max(), 31.0, 0.10)
+riser = fft_filter(rng.standard_normal(rn), 500, 7000) * (rt / rt[-1]) ** 2.5
+music.add(riser / np.abs(riser).max(), 31.3, .12)
 
-# reveal sting: bright D major arpeggio on bells + low hit
+# drop: impact + bright bells
+music.add(K, REVEAL, 1.0); music.add(SN, REVEAL, .5)
+n = int(1.5 * SR); t_ = np.arange(n) / SR
+music.add(np.sin(2 * np.pi * 42 * t_) * np.exp(-t_ * 2.5), REVEAL, .7)
 for i, m in enumerate([74, 78, 81, 86]):
-    music.add(bell(midi(m), 2.5, 0.8), REVEAL + i * 0.07, 0.22, -0.3 + 0.2 * i)
-music.add(pluck(midi(38), 1.5, 0.6, 0.5), REVEAL, 0.6)
-music.add(pad_chord([62, 66, 69, 74], 4.2), REVEAL, 0.13)
+    music.add(bell(midi(m), 2.5, .8), REVEAL + i * .07, .16, -.3 + .2 * i)
 
-# playful outro: tip-toe pizz in D major, then a final "ta-da" chord
-outro = [(0, 74), (0.5, 78), (1.0, 81), (1.5, 78), (2.0, 76), (2.5, 73)]
-for dt, m in outro:
-    music.add(pluck(midi(m), 0.4, 1.0, 0.1), REVEAL + 1.2 + dt * BEAT, 0.18, 0.3)
-for m in (38, 50, 62, 66, 69, 74):
-    music.add(pluck(midi(m), 2.0, 0.9, 0.6), END_CHORD, 0.22 if m > 45 else 0.45)
+# ending chord
+for m in (38, 50, 62, 65, 69, 74):
+    music.add(rhodes(midi(m), 2.0), END_CHORD, .12 if m > 45 else .3)
+music.add(K, END_CHORD, .8)
 
-# master fade in/out + normalise
 tt = np.arange(N) / SR
-fade = np.clip(tt / 0.6, 0, 1) * np.clip((DURATION - tt) / 1.2, 0, 1)
+fade = np.clip(tt / .4, 0, 1) * np.clip((DURATION - tt) / 1.0, 0, 1)
 mix = np.stack([music.L, music.R]) * fade
-mix = np.tanh(mix / (np.abs(mix).max() + 1e-9) * 1.4) * 0.5
+mix = np.tanh(mix / (np.abs(mix).max() + 1e-9) * 1.8) * .55
 
 # ---------------------------------------------------------------- SFX
 sfx = Track()

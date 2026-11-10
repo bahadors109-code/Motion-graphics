@@ -9,9 +9,12 @@ const path = require('path');
 const fs = require('fs');
 
 const FPS = 30;
+const li = process.argv.indexOf('--lang');
+const LANG = li > 0 ? process.argv[li + 1] : 'fa';
+const SUFFIX = LANG === 'fa' ? '' : '-' + LANG;
 const ROOT = __dirname;
 const BUILD = path.join(ROOT, 'build');
-const OUT = path.join(ROOT, '..', 'output', 'border-smuggler.mp4');
+const OUT = path.join(ROOT, '..', 'output', `border-smuggler${SUFFIX}.mp4`);
 fs.mkdirSync(BUILD, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
@@ -19,7 +22,7 @@ async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
   const p = await browser.newPage({ viewport: { width: 540, height: 960 } });
   p.on('pageerror', e => console.error('PAGE ERROR', e));
-  await p.goto('file://' + path.join(ROOT, 'index.html') + '?static');
+  await p.goto('file://' + path.join(ROOT, 'index.html') + '?static&lang=' + LANG);
   await p.waitForFunction(() => window.ready === true, null, { timeout: 120000 });
   return { browser, p };
 }
@@ -27,7 +30,7 @@ const grab = (p, t) => p.evaluate(t => { window.renderFrame(t); return document.
 
 async function stills(ts) {
   const { browser, p } = await page();
-  for (const t of ts) fs.writeFileSync(path.join(BUILD, `still-${t}.jpg`), Buffer.from(await grab(p, t), 'base64'));
+  for (const t of ts) fs.writeFileSync(path.join(BUILD, `still${SUFFIX}-${t}.jpg`), Buffer.from(await grab(p, t), 'base64'));
   await browser.close();
 }
 
@@ -35,7 +38,7 @@ async function video() {
   const { browser, p } = await page();
   const duration = await p.evaluate(() => window.DURATION);
   const frames = Math.round(duration * FPS);
-  const silent = path.join(BUILD, 'video.mp4');
+  const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
   const t0 = Date.now();
@@ -54,7 +57,7 @@ async function video() {
 // audio: narration split at 22.1s so the guard's line gets a 2.6s gap,
 // music ducked under the voice, then loudness-normalised to -15 LUFS.
 async function mux(duration = 43) {
-  const silent = path.join(BUILD, 'video.mp4');
+  const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
   const nar = path.join(ROOT, 'assets', 'narration.mp3');
   const filter = [

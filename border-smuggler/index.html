@@ -7,6 +7,9 @@
   @font-face { font-family: Vazir; font-weight: 900; src: url(assets/Vazirmatn-Black.ttf); }
   @font-face { font-family: Vazir; font-weight: 800; src: url(assets/Vazirmatn-ExtraBold.ttf); }
   @font-face { font-family: Vazir; font-weight: 700; src: url(assets/Vazirmatn-Bold.ttf); }
+  @font-face { font-family: Lucky; src: url(assets/LuckiestGuy.woff2); }
+  @font-face { font-family: Mont; font-weight: 800; src: url(assets/montserrat-latin-800-normal.woff2); }
+  @font-face { font-family: Mont; font-weight: 900; src: url(assets/montserrat-latin-900-normal.woff2); }
   html, body { margin: 0; background: #000; }
   canvas { display: block; width: 540px; height: 960px; }
 </style>
@@ -20,6 +23,46 @@
    assets/bg-village.jpg (1620x2400, ground line around y=1460+240) and
    they replace the procedurally painted backgrounds. */
 const W = 1080, H = 1920, DURATION = 43.0;
+// ---------------------------------------------------------------- language (?lang=en | fa)
+const LANG = new URLSearchParams(location.search).get('lang') || 'fa';
+const DIR = LANG === 'fa' ? 'rtl' : 'ltr';
+// display = big comic titles/tags, body = captions & bubble text
+function F(weight, size, kind = 'display') {
+  if (LANG === 'fa') return `${weight} ${size}px Vazir`;
+  return kind === 'display' ? `${Math.round(size * .92)}px Lucky` : `${weight} ${Math.round(size * .9)}px Mont`;
+}
+const TX = {
+  fa: {
+    title: 'چیزی که جلوی چشم بود', sign: 'ایست بازرسی مرزی', sand: 'شن؟!', cal: 'تقویم',
+    m1: 'ماه اول', m2: 'ماه دوم', m3: 'ماه سوم', sieve: 'الک ویژه!',
+    bubble: ['بالاخره می‌فهمم', 'چی قاچاق می‌کنی!'], border: 'مرز', sold: 'فروخته شد!',
+    bikes: ['دوچرخه ۱', 'دوچرخه ۲', 'دوچرخه ۳'], end: 'گونی‌ها فقط حواس‌پرتی بودن!',
+    captions: [
+      [0.5, 'ماهی یه بار، این مرد'], [2.9, 'با یه دوچرخه و چند تا *گونی* از مرز رد می‌شد…'],
+      [5.83, '*مرزبان* مطمئن بود یه خبری هست!'], [8.36, 'هر بار گونی‌ها رو خالی می‌کرد…'],
+      [10.71, 'ولی چیزی جز *شن* پیدا نمی‌کرد.'], [13.25, '*ماه بعد،* دوباره همون مرد،'],
+      [15.56, 'همون گونی‌ها…'], [16.74, 'و باز هم *شن!*'], [18.21, 'بازرسی هر بار *سخت‌تر* می‌شد،'],
+      [20.46, 'ولی هیچ‌وقت چیزی پیدا نمی‌شد.'], [25.41, 'ولی هیچ‌وقت *نفهمید…*'], [28.03, 'چون تمام مدت'],
+      [30.09, 'داشت توی *گونی‌ها* دنبال قاچاق می‌گشت…'], [33.72, 'درحالی‌که قاچاق،'], [36.82, 'خودِ *دوچرخه‌ها* بودن!'],
+    ],
+  },
+  en: {
+    title: 'HIDDEN IN PLAIN SIGHT', sign: 'BORDER CHECKPOINT', sand: 'SAND?!', cal: 'CALENDAR',
+    m1: 'MONTH 1', m2: 'MONTH 2', m3: 'MONTH 3', sieve: 'SUPER SIEVE!',
+    bubble: ["One day I'll find out", "what you're smuggling!"], border: 'BORDER', sold: 'SOLD!',
+    bikes: ['BIKE 1', 'BIKE 2', 'BIKE 3'], end: 'THE SACKS WERE JUST A DISTRACTION!',
+    captions: [
+      [0.5, 'Once a month, this man crossed the border'], [2.9, 'with a *bicycle* and a few *sacks*…'],
+      [5.83, 'The *guard* was sure something was up!'], [8.36, 'Every time, he emptied the sacks…'],
+      [10.71, '…but found nothing but *sand.*'], [13.25, '*The next month,* the same man again,'],
+      [15.56, 'the same sacks…'], [16.74, 'and *sand* once again!'], [18.21, 'Each inspection got *tougher,*'],
+      [20.46, 'but he never found a thing.'], [25.41, 'But he *never* figured it out…'], [28.03, 'Because all along,'],
+      [30.09, 'he was searching the *sacks* for contraband…'], [33.72, 'when the contraband…'], [36.82, 'was the *bicycles* themselves!'],
+    ],
+  },
+};
+const TT = TX[LANG];
+const CAP_END = [5.3, 5.3, 7.94, 10.29, 12.56, 15.17, 16.39, 17.74, 20.14, 22.34, 27.58, 29.47, 33.37, 36.36, 39.1];
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 const OUT = '#1b1b1f';
@@ -193,12 +236,15 @@ function paintBorderProps(g, rnd) {
   gr.addColorStop(0, 'rgba(255,210,140,.45)'); gr.addColorStop(1, 'rgba(255,210,140,0)');
   g.fillStyle = gr; g.beginPath(); g.arc(bx + 86, 1290, 200, 0, 7); g.fill();
   g.fillStyle = '#6a6153'; g.fillRect(bx + 160, 1250, 54, 165); // door
-  // sign board on the roof
-  g.fillStyle = '#2f3a2c'; g.fillRect(bx + 20, 1120, 8, 50); g.fillRect(bx + bw - 28, 1120, 8, 50);
-  g.fillStyle = '#26402f'; rr(g, bx - 70, 1050, bw + 140, 86, 10); g.fill();
-  g.strokeStyle = '#e8e3d0'; g.lineWidth = 4; rr(g, bx - 62, 1058, bw + 124, 70, 7); g.stroke();
-  g.fillStyle = '#f2eedf'; g.font = '800 44px Vazir'; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('ایست بازرسی مرزی', bx + bw / 2, 1096);
+  // overhead checkpoint gantry: board sits above the actors' heads so it never hides behind them
+  const sgx = 395, sgw = 590, sgy = 760, sgh = 110;
+  for (const px of [sgx + 30, sgx + sgw - 42]) { g.fillStyle = '#2d3036'; g.fillRect(px, sgy + 40, 12, 1452 - sgy - 40); g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(px + 2, sgy + 40, 3, 1452 - sgy - 40); }
+  g.fillStyle = 'rgba(0,0,0,.35)'; rr(g, sgx + 6, sgy + 10, sgw, sgh, 12); g.fill();
+  g.fillStyle = '#1f5a36'; rr(g, sgx, sgy, sgw, sgh, 12); g.fill();
+  g.strokeStyle = '#eef0e6'; g.lineWidth = 5; rr(g, sgx + 9, sgy + 9, sgw - 18, sgh - 18, 8); g.stroke();
+  g.fillStyle = '#f4f2e6'; g.font = LANG === 'fa' ? '900 54px Vazir' : '900 42px Mont'; g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(TT.sign, sgx + sgw / 2, sgy + sgh / 2 + 3);
+  g.fillStyle = '#c3352b'; g.beginPath(); g.arc(sgx + sgw / 2, sgy - 14, 10, 0, 7); g.fill();
   // raised barrier boom
   g.fillStyle = '#3a3b3f'; g.fillRect(722, 1330, 26, 130);
   g.save(); g.translate(735, 1340); g.rotate(-1.18);
@@ -660,12 +706,63 @@ function popIn(t, a, b, dur = .35, out = .3) {
 function title(g, text, x, y, size, st, opt = {}) {
   if (!st) return;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(x, y); g.rotate(opt.rot || 0); g.scale(st.s, st.s); g.globalAlpha = st.a;
-  g.font = `${opt.weight || 900} ${size}px Vazir`; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = F(opt.weight || 900, size); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.lineJoin = 'round';
-  g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = 24; g.shadowOffsetY = 6;
-  g.strokeStyle = opt.stroke || 'rgba(20,18,26,.9)'; g.lineWidth = size * .2; g.strokeText(text, 0, 0);
-  g.shadowColor = 'transparent';
-  g.fillStyle = opt.fill || '#ffffff'; g.fillText(text, 0, 0);
+  const lines = wrap(g, text, opt.maxW || 960);
+  lines.forEach((ln, k) => {
+    const y = (k - (lines.length - 1) / 2) * size * 1.12;
+    g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = 24; g.shadowOffsetY = 6;
+    g.strokeStyle = opt.stroke || 'rgba(20,18,26,.9)'; g.lineWidth = size * .2; g.strokeText(ln, 0, y);
+    g.shadowColor = 'transparent';
+    g.fillStyle = opt.fill || '#ffffff'; g.fillText(ln, 0, y);
+  });
+  g.restore();
+}
+function wrap(g, text, maxW) {
+  const words = text.split(' '), lines = []; let cur = '';
+  for (const w of words) { const tst = cur ? cur + ' ' + w : w; if (g.measureText(tst.replace(/\*/g, '')).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tst; }
+  if (cur) lines.push(cur); return lines;
+}
+/* narration captions: *word* = highlighted in yellow; words pop in one after another */
+function captions(g, t) {
+  const C = TT.captions;
+  let i = -1;
+  for (let k = 0; k < C.length; k++) if (t >= C[k][0] && t < Math.min(CAP_END[k] + .35, k + 1 < C.length ? C[k + 1][0] : 99)) i = k;
+  if (i < 0) return;
+  const [t0, text] = C[i], tEnd = Math.min(CAP_END[i] + .35, i + 1 < C.length ? C[i + 1][0] : 99);
+  const size = LANG === 'fa' ? 62 : 60;
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.font = LANG === 'fa' ? `900 ${size}px Vazir` : `900 ${size}px Mont`;
+  g.textBaseline = 'middle'; g.direction = DIR; g.textAlign = 'left'; g.lineJoin = 'round';
+  const lines = wrap(g, text, 900), lh = size * 1.25;
+  const words = text.split(' ').length, dur = Math.max(.3, CAP_END[i] - t0);
+  const fade = 1 - seg(t, tEnd - .15, tEnd);
+  let wi = 0;
+  const space = g.measureText(' ').width;
+  lines.forEach((ln, li) => {
+    const ws = ln.split(' ');
+    const widths = ws.map(w => g.measureText(w.replace(/\*/g, '')).width);
+    const total = widths.reduce((a, b) => a + b, 0) + space * (ws.length - 1);
+    let x = DIR === 'rtl' ? 540 + total / 2 : 540 - total / 2;
+    const y = 1710 + (li - (lines.length - 1) / 2) * lh;
+    let hl = false;
+    ws.forEach((w, k) => {
+      const appear = t0 + (wi / words) * Math.min(dur * .5, 1.2), p = seg(t, appear, appear + .14);
+      const star = w.startsWith('*'); if (star) hl = true;
+      const clean = w.replace(/\*/g, ''), ww = widths[k];
+      const cx = DIR === 'rtl' ? x - ww / 2 : x + ww / 2;
+      if (p > 0) {
+        g.save(); g.translate(cx, y + (1 - easeOut(p)) * 18); g.scale(lerp(.7, 1, easeBack(p)), lerp(.7, 1, easeBack(p))); g.globalAlpha = p * fade;
+        g.textAlign = 'center';
+        g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 16; g.shadowOffsetY = 4;
+        g.strokeStyle = '#141218'; g.lineWidth = 13; g.strokeText(clean, 0, 0); g.shadowColor = 'transparent';
+        g.fillStyle = hl ? '#ffd23f' : '#ffffff'; g.fillText(clean, 0, 0);
+        g.restore();
+      }
+      if (w.endsWith('*') || (star && w.length > 1 && w.slice(1).includes('*'))) hl = false;
+      x += (DIR === 'rtl' ? -1 : 1) * (ww + space); wi++;
+    });
+  });
   g.restore();
 }
 function bubble(g, x, y, w, h, tail, lines, st) {
@@ -679,14 +776,14 @@ function bubble(g, x, y, w, h, tail, lines, st) {
   g.beginPath(); g.moveTo(x - 10, y + h / 2); g.lineTo(tail[0], tail[1]); g.lineTo(x - 70, y + h / 2);
   g.arcTo(x - w / 2, y + h / 2, x - w / 2, y - h / 2, 46); g.arcTo(x - w / 2, y - h / 2, x + w / 2, y - h / 2, 46);
   g.arcTo(x + w / 2, y - h / 2, x + w / 2, y + h / 2, 46); g.arcTo(x + w / 2, y + h / 2, x - 10, y + h / 2, 46); g.closePath(); g.stroke();
-  g.fillStyle = OUT; g.font = '900 60px Vazir'; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = OUT; g.font = F(900, 60, 'body'); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
   lines.forEach((l, i) => g.fillText(l, x, y + (i - (lines.length - 1) / 2) * 78));
   g.restore();
 }
 function tag(g, text, x, y, size, st, bg = '#ffd23f', fg = OUT, rot = 0) {
   if (!st) return;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(x, y); g.rotate(rot); g.scale(st.s, st.s); g.globalAlpha = st.a;
-  g.font = `900 ${size}px Vazir`; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = F(900, size); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
   const w = g.measureText(text).width + size * .9, h = size * 1.45;
   g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 18; g.shadowOffsetY = 5;
   rr(g, -w / 2, -h / 2, w, h, h / 2); g.fillStyle = bg; g.fill(); g.shadowColor = 'transparent';
@@ -698,7 +795,7 @@ function stamp(g, text, x, y, size, st) {
   if (!st) return;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.translate(x, y); g.rotate(-.12);
   const s = st.s < 1 ? lerp(2.2, 1, easeOut(clamp(st.s))) : st.s; g.scale(s, s); g.globalAlpha = st.a;
-  g.font = `900 ${size}px Vazir`; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = F(900, size); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
   const w = g.measureText(text).width + 70, h = size * 1.6;
   g.fillStyle = 'rgba(255,255,255,.9)'; rr(g, -w / 2, -h / 2, w, h, 18); g.fill();
   g.lineWidth = 10; g.strokeStyle = '#2f8f47'; rr(g, -w / 2, -h / 2, w, h, 18); g.stroke();
@@ -720,7 +817,7 @@ function calendar(g, t, t0, from, to, sceneEnd) {
     g.save(); g.translate(0, -ph / 2 + 120); g.scale(1, scaleY); g.translate(0, ph / 2 - 120);
     rr(g, -pw / 2, -ph / 2 + 120, pw, ph - 120, 22); g.fillStyle = '#fbf8f1'; g.fill(); g.lineWidth = 7; g.strokeStyle = OUT; g.stroke();
     if (scaleY > 0) {
-      g.fillStyle = OUT; g.font = '900 104px Vazir'; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = OUT; g.font = F(900, LANG === 'fa' ? 104 : 96); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText(label, 0, 110);
       g.strokeStyle = 'rgba(0,0,0,.1)'; g.lineWidth = 3;
       for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-170, 200 + i * 0); g.stroke(); }
@@ -735,7 +832,7 @@ function calendar(g, t, t0, from, to, sceneEnd) {
   if (fp < 1) page(from, Math.cos(fp * Math.PI), fp > .5 ? .25 : fp * .3);
   // header + rings
   rr(g, -pw / 2, -ph / 2, pw, 130, 24); g.fillStyle = '#c8392e'; g.fill(); g.lineWidth = 7; g.strokeStyle = OUT; g.stroke();
-  g.fillStyle = '#fff'; g.font = '800 54px Vazir'; g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('تقویم', 0, -ph / 2 + 72);
+  g.fillStyle = '#fff'; g.font = F(800, 54); g.direction = DIR; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(TT.cal, 0, -ph / 2 + 72);
   for (const rx of [-140, 140]) { rr(g, rx - 14, -ph / 2 - 30, 28, 64, 14); g.fillStyle = '#d9dade'; g.fill(); g.lineWidth = 5; g.stroke(); }
   g.restore();
 }
@@ -780,7 +877,7 @@ const SCENES = [
   // 1 — first crossing, wide
   { a: 0, b: 5.6, draw(t) {
     const z = lerp(1.0, 1.1, easeIO(seg(t, 0, 5.6))), [sx, sy] = shake(t, 3);
-    setCam(ctx, 540, lerp(960, 1080, easeIO(seg(t, 0, 5.6))), z, sx, sy);
+    setCam(ctx, 540, lerp(1150, 1240, easeIO(seg(t, 0, 5.6))), z, sx, sy);
     drawBg(ctx, 'border', t);
     const walkP = easeOut(seg(t, .2, 3.9));
     const mx = lerp(-330, 300, walkP), walking = t < 3.9;
@@ -792,7 +889,7 @@ const SCENES = [
     drawPerson(ctx, G);
     drawPerson(ctx, M, 'body'); drawBike(ctx, bike); drawPerson(ctx, M, 'front');
     frontFog(ctx, t);
-    title(ctx, 'چیزی که جلوی چشم بود', 540, 330, 92, popIn(t, .3, 3.7, .5, .4));
+    title(ctx, TT.title, 540, 330, LANG === 'fa' ? 92 : 104, popIn(t, .3, 3.7, .5, .4));
   } },
   // 2 — inspection close-up
   { a: 5.6, b: 12.9, draw(t) {
@@ -812,7 +909,7 @@ const SCENES = [
       trickle: reachIn > .5 ? .9 : 0,
     });
     frontFog(ctx, t);
-    title(ctx, 'شن؟!', 580, 800, 120, popIn(t, 10.9, 12.8, .35, .3), { fill: '#ffd23f', rot: -.08 });
+    title(ctx, TT.sand, 600, 820, 120, popIn(t, 10.9, 12.8, .35, .3), { fill: '#ffd23f', rot: -.08 });
   } },
   // 3a — month 2, blue bike, magnifier
   { a: 12.9, b: 17.5, draw(t) {
@@ -825,7 +922,7 @@ const SCENES = [
     });
     for (let i = 0; i < 3; i++) { const p = ((t - 13) * .55 + i / 3) % 1; musicNote(ctx, INS.manX - 120 - p * 80 + Math.sin(p * 9) * 15, 1040 - p * 220, .9, Math.sin(p * Math.PI)); }
     frontFog(ctx, t);
-    calendar(ctx, t, 12.9, 'ماه اول', 'ماه دوم', 17.5);
+    calendar(ctx, t, 12.9, TT.m1, TT.m2, 17.5);
   } },
   // 3b — month 3, black bike, sieve
   { a: 17.5, b: 22.4, draw(t) {
@@ -840,14 +937,14 @@ const SCENES = [
       manExpr: t > 19 ? 'closed' : 'smile',
     });
     frontFog(ctx, t);
-    calendar(ctx, t, 17.5, 'ماه دوم', 'ماه سوم', 22.4);
+    calendar(ctx, t, 17.5, TT.m2, TT.m3, 22.4);
     const st = popIn(t, 20.3, 22.3, .35, .25);
     if (st) { // arrow to the sieve
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 9; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(500, 810); ctx.quadraticCurveTo(440, 930, 330, 955); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(330, 955); ctx.lineTo(364, 928); ctx.moveTo(330, 955); ctx.lineTo(370, 972); ctx.stroke(); ctx.restore();
     }
-    tag(ctx, 'الک ویژه!', 600, 760, 64, st, '#ffd23f', OUT, .05);
+    tag(ctx, TT.sieve, 620, 760, 64, st, '#ffd23f', OUT, .05);
   } },
   // 4 — last suspicion, shrug, crossing
   { a: 22.4, b: 28.0, draw(t) {
@@ -872,8 +969,8 @@ const SCENES = [
     if (shrug > .05) { drawBike(ctx, bike); drawPerson(ctx, M); }
     else { drawPerson(ctx, M, 'body'); drawBike(ctx, bike); drawPerson(ctx, M, 'front'); }
     frontFog(ctx, t);
-    bubble(ctx, 560, 400, 860, 230, [230, 600], ['بالاخره می‌فهمم', 'چی قاچاق می‌کنی!'], popIn(t, 22.7, 25.35, .3, .25));
-    tag(ctx, 'مرز', 640, 1640, 58, popIn(t, 27.5, 28.0, .3, .15), '#ffd23f');
+    bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, 25.35, .3, .25));
+    tag(ctx, TT.border, 670, 1575, 58, popIn(t, 27.5, 28.0, .3, .15), '#ffd23f');
   } },
   // 5 — the other side: the sale
   { a: 28.0, b: 31.3, draw(t) {
@@ -897,7 +994,7 @@ const SCENES = [
     drawPerson(ctx, M, 'front');
     if (t > 28.3) drawMoney(ctx, moneyX, moneyY - 20, -.2, take);
     frontFog(ctx, t);
-    stamp(ctx, 'فروخته شد!', 540, 520, 96, popIn(t, 29.7, 31.3, .35, .2));
+    stamp(ctx, TT.sold, 540, 520, 96, popIn(t, 29.7, 31.3, .35, .2));
   } },
   // 6 — flashback panels & reveal
   { a: 31.3, b: 39.1, draw(t) {
@@ -909,16 +1006,16 @@ const SCENES = [
     ctx.restore(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     const reveal = seg(t, 36.75, 37.1);
     const sackA = 1 - easeIO(seg(t, 33.7, 35.0));
-    const cols = ['red', 'blue', 'black'], labels = ['دوچرخه ۱', 'دوچرخه ۲', 'دوچرخه ۳'];
-    const zp = .56;
+    const cols = ['red', 'blue', 'black'], labels = TT.bikes;
+    const zp = .5;
     for (let i = 0; i < 3; i++) {
       const ent = easeOut(seg(t, 31.35 + i * .3, 31.95 + i * .3));
       if (ent <= 0) continue;
-      const px = 60 + (1 - ent) * (i % 2 ? -1100 : 1100), py = 300 + i * 520, pw = 960, ph = 470;
+      const px = 60 + (1 - ent) * (i % 2 ? -1100 : 1100), py = 170 + i * 450, pw = 960, ph = 410;
       const pc = PANELS[i], pg = pc.getContext('2d');
       pg.setTransform(1, 0, 0, 1, 0, 0); pg.clearRect(0, 0, pw, ph);
       pg.setTransform(zp, 0, 0, zp, pw / 2 - 560 * zp, ph / 2 - 1360 * zp);
-      pg.drawImage(BG.border, WX0 - 120, WY0, WW + 240, WH);
+      pg.drawImage(BG.border, WX0 - 260, WY0, WW + 520, WH);
       const lt = t + i * 1.7;
       inspectionWorld(pg, lt, { bikeColor: BIKE_COL[cols[i]], open: 1, guardPose: 'reach', guardExpr: 'focused', look: [2, 6],
         handT: (() => { const a = bikeAnchors({ x: INS.bikeX, y: GY }); return [a.sackTop[0] - 10 + Math.sin(lt * 6) * 10, a.sackTop[1] + 40]; })(),
@@ -942,7 +1039,7 @@ const SCENES = [
       // film scratches on the old footage
       ctx.save(); ctx.globalAlpha = .25 * (1 - reveal); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
       const sxp = px + ((t * 997 + i * 300) % pw); ctx.beginPath(); ctx.moveTo(sxp, py); ctx.lineTo(sxp + 6, py + ph); ctx.stroke(); ctx.restore();
-      tag(ctx, labels[i], px + 150, py + ph / 2 + 40, 56, popIn(t, 36.85 + i * .15, 39.1, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
+      tag(ctx, labels[i], px + 150, py + ph / 2 + 30, 56, popIn(t, 36.85 + i * .15, 39.1, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
     }
   } },
   // 7 — punchline: the guard is still sieving
@@ -960,10 +1057,10 @@ const SCENES = [
     drawSieve(ctx, sxv, syv);
     fly(ctx, 470, 1010, t, 0); fly(ctx, 520, 980, t + 1.3, 1);
     frontFog(ctx, t);
-    title(ctx, 'گونی‌ها فقط حواس‌پرتی بودن!', 540, 470, 74, popIn(t, 39.55, 43.5, .45, .1));
+    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, 39.55, 43.5, .45, .1));
     const st = popIn(t, 39.9, 43.5, .4, .1);
     if (st) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
-      const p = easeOut(seg(t, 39.9, 40.5)); ctx.beginPath(); ctx.moveTo(880, 545); ctx.quadraticCurveTo(540, 575, lerp(880, 200, p), 545 + 10 * p); ctx.stroke(); ctx.restore(); }
+      const p = easeOut(seg(t, 39.9, 40.5)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
   } },
 ];
 let PANELS = [];
@@ -973,6 +1070,7 @@ function renderFrame(t) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   const sc = SCENES.find(s => t >= s.a && t < s.b) || SCENES[SCENES.length - 1];
   ctx.save(); sc.draw(t); ctx.restore();
+  captions(ctx, t);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   // ambient dust motes
   for (let i = 0; i < 40; i++) {
@@ -991,12 +1089,12 @@ function renderFrame(t) {
 }
 
 async function init() {
-  await document.fonts.load('900 40px Vazir'); await document.fonts.load('800 40px Vazir'); await document.fonts.load('700 40px Vazir');
+  await document.fonts.load('900 40px Vazir'); await document.fonts.load('40px Lucky'); await document.fonts.load('900 40px Mont'); await document.fonts.load('800 40px Mont'); await document.fonts.load('800 40px Vazir'); await document.fonts.load('700 40px Vazir');
   const [pb, pv] = await Promise.all([loadImg('assets/bg-border.jpg'), loadImg('assets/bg-village.jpg')]);
   BG.border = pb || paintBackground('border');
   BG.village = pv || paintBackground('village');
   paintFx();
-  PANELS = [0, 1, 2].map(() => mk(960, 470));
+  PANELS = [0, 1, 2].map(() => mk(960, 410));
   window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
   const q = new URLSearchParams(location.search);
   if (q.has('t')) renderFrame(parseFloat(q.get('t')));
