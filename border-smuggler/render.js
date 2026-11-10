@@ -65,11 +65,12 @@ async function mux(tl) {
   // narration phrases: [audioStart, audioEnd, offset] — each phrase is moved onto its scene
   const NAR = {
     fa: { file: 'narration.mp3', segs: [[0, 22.1, 0.5], [22.1, 99, 3.1]] },
-    en: { file: 'narration-en.mp3', segs: [[0, 12.65, 0.35], [12.65, 22.9, -0.15], [22.9, 25.1, 1.58], [25.1, 29.1, 3.10], [29.1, 99, 3.35]] },
+    en: { file: 'narration-en.mp3', // last phrase of the file is the guard's line -> pitched down, under the speech bubble
+    segs: [[0, 12.5, 0.35], [12.5, 22.75, 0.01], [22.75, 24.95, 2.14], [24.95, 28.95, 3.19], [28.95, 32.2, 3.45], [32.2, 99, -9.66, 0.84]] },
   }[LANG];
   const nar = path.join(ROOT, 'assets', NAR.file);
-  const parts = NAR.segs.map(([a, b, o], k) =>
-    `[0:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
+  const parts = NAR.segs.map(([a, b, o, pitch], k) =>
+    `[0:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},bass=g=3,` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
   const filter = [
     ...parts,
     `${NAR.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NAR.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},asplit=2[voice][key]`,
