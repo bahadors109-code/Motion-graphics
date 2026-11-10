@@ -331,7 +331,7 @@ events = [
     (float(ARGS.get('sack0', 33.7)) + .2, whoosh(0.6), 0.25, 0),     # sacks fade away
     (float(ARGS.get('s7', 39.1)) + .1, whoosh(0.5), 0.3, 0),
     *([(float(ARGS.get('s7', 39.1)) + .35, pop(), 0.45, 0)] if END_BUBBLE else []),   # end speech bubble
-    (float(ARGS.get('s7', 39.1)) + (2.75 if END_BUBBLE else .5), pop(), 0.5, 0),            # final text
+    (float(ARGS.get('s7', 39.1)) + (2.5 if END_BUBBLE else .5), pop(), 0.5, 0),            # final text
 ]
 for at, sig, g, p in events:
     at = O(at)

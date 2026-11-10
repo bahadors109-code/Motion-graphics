@@ -65,8 +65,8 @@ async function mux(tl) {
   // narration phrases: [audioStart, audioEnd, offset] — each phrase is moved onto its scene
   const NAR = {
     fa: { file: 'narration.mp3', segs: [[0, 22.1, 0.5], [22.1, 99, 3.1]] },
-    en: { file: 'narration-en.mp3', // last phrase of the file is the guard's line -> pitched down, under the speech bubble
-    segs: [[0, 12.5, 0.35], [12.5, 22.75, 0.01], [22.75, 24.95, 0.14], [24.95, 28.95, 1.49], [28.95, 32.2, 1.75], [32.2, 99, 3.29, 0.84]] },
+    en: { file: 'narration-en.mp3', // last phrase of the file: "The sacks were just a distraction!" -> with the end title
+    segs: [[0, 12.5, 0.35], [12.5, 22.75, 0.01], [22.75, 24.95, 0.14], [24.95, 28.95, 1.49], [28.95, 32.2, 1.75], [32.2, 99, 5.39]] },
   }[LANG];
   const nar = path.join(ROOT, 'assets', NAR.file);
   const parts = NAR.segs.map(([a, b, o, pitch], k) =>

@@ -1056,7 +1056,7 @@ const SCENES = [
     drawBg(ctx, 'border', t);
     sandPile(ctx, 560, GY + 6, 380, 120);
     sandPile(ctx, 820, GY + 10, 200, 50);
-    const talking = TL.endBubble && t > TL.s7 + .3 && t < TL.s7 + 2.5;
+    const talking = TL.endBubble && t > TL.s7 + .3 && t < TL.s7 + 2.4;
     const G = { kind: 'guard', x: 420, y: GY, s: 1, face: 1, expr: talking ? 'angry' : 'focused', look: talking ? [5, -2] : [3, 8], sweat: t, arms: {} };
     const sxv = 560 + Math.sin(t * 30) * 14, syv = 1335;
     G.arms.front = { t: [sxv + 95, syv + 4] }; G.arms.back = { t: [sxv - 100, syv + 4] };
@@ -1065,8 +1065,8 @@ const SCENES = [
     drawSieve(ctx, sxv, syv);
     fly(ctx, 470, 1010, t, 0); fly(ctx, 520, 980, t + 1.3, 1);
     frontFog(ctx, t);
-    if (TL.endBubble) bubble(ctx, 580, 360, 960, 230, [400, 560], TT.bubble, popIn(t, TL.s7 + .3, TL.s7 + 2.6, .3, .25));
-    const et = TL.endBubble ? TL.s7 + 2.7 : TL.s7 + .45;
+    if (TL.endBubble) bubble(ctx, 580, 360, 960, 230, [400, 560], TT.bubble, popIn(t, TL.s7 + .3, TL.s7 + 2.4, .3, .2));
+    const et = TL.endBubble ? TL.s7 + 2.5 : TL.s7 + .45;
     title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, et, TL.dur + .5, .45, .1));
     const st = popIn(t, et + .35, TL.dur + .5, .4, .1);
     if (st) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
