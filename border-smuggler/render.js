@@ -59,13 +59,19 @@ async function video() {
 async function mux(duration = 43) {
   const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
-  const nar = path.join(ROOT, 'assets', 'narration.mp3');
+  // narration phrases: [audioStart, audioEnd, offset] — each phrase is moved onto its scene
+  const NAR = {
+    fa: { file: 'narration.mp3', segs: [[0, 22.1, 0.5], [22.1, 99, 3.1]] },
+    en: { file: 'narration-en.mp3', segs: [[0, 12.65, 0.35], [12.65, 22.9, -0.15], [22.9, 25.1, 2.19], [25.1, 29.1, 2.73], [29.1, 30.64, 4.47], [30.64, 99, 6.12]] },
+  }[LANG];
+  const nar = path.join(ROOT, 'assets', NAR.file);
+  const parts = NAR.segs.map(([a, b, o], k) =>
+    `[0:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
   const filter = [
-    `[0:a]atrim=0:22.1,asetpts=PTS-STARTPTS,adelay=500|500[n1]`,
-    `[0:a]atrim=start=22.1,asetpts=PTS-STARTPTS,adelay=25200|25200[n2]`,
-    `[n1][n2]amix=inputs=2:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},asplit=2[voice][key]`,
-    `[1:a]volume=0.2[mus]`,
-    `[mus][key]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=500[duck]`,
+    ...parts,
+    `${NAR.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NAR.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},asplit=2[voice][key]`,
+    `[1:a]volume=0.5[mus]`,
+    `[mus][key]sidechaincompress=threshold=0.05:ratio=3:attack=30:release=450[duck]`,
     `[2:a]volume=0.45[fx]`,
     `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-15:TP=-1.5:LRA=11,aresample=44100[a]`,
   ].join(';');

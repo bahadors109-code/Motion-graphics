@@ -38,12 +38,12 @@ const TX = {
     bubble: ['بالاخره می‌فهمم', 'چی قاچاق می‌کنی!'], border: 'مرز', sold: 'فروخته شد!',
     bikes: ['دوچرخه ۱', 'دوچرخه ۲', 'دوچرخه ۳'], end: 'گونی‌ها فقط حواس‌پرتی بودن!',
     captions: [
-      [0.5, 'ماهی یه بار، این مرد'], [2.9, 'با یه دوچرخه و چند تا *گونی* از مرز رد می‌شد…'],
-      [5.83, '*مرزبان* مطمئن بود یه خبری هست!'], [8.36, 'هر بار گونی‌ها رو خالی می‌کرد…'],
-      [10.71, 'ولی چیزی جز *شن* پیدا نمی‌کرد.'], [13.25, '*ماه بعد،* دوباره همون مرد،'],
-      [15.56, 'همون گونی‌ها…'], [16.74, 'و باز هم *شن!*'], [18.21, 'بازرسی هر بار *سخت‌تر* می‌شد،'],
-      [20.46, 'ولی هیچ‌وقت چیزی پیدا نمی‌شد.'], [25.41, 'ولی هیچ‌وقت *نفهمید…*'], [28.03, 'چون تمام مدت'],
-      [30.09, 'داشت توی *گونی‌ها* دنبال قاچاق می‌گشت…'], [33.72, 'درحالی‌که قاچاق،'], [36.82, 'خودِ *دوچرخه‌ها* بودن!'],
+      [0.5, 'ماهی یه بار، این مرد', 5.3], [2.9, 'با یه دوچرخه و چند تا *گونی* از مرز رد می‌شد…', 5.3],
+      [5.83, '*مرزبان* مطمئن بود یه خبری هست!', 7.94], [8.36, 'هر بار گونی‌ها رو خالی می‌کرد…', 10.29],
+      [10.71, 'ولی چیزی جز *شن* پیدا نمی‌کرد.', 12.56], [13.25, '*ماه بعد،* دوباره همون مرد،', 15.17],
+      [15.56, 'همون گونی‌ها…', 16.39], [16.74, 'و باز هم *شن!*', 17.74], [18.21, 'بازرسی هر بار *سخت‌تر* می‌شد،', 20.14],
+      [20.46, 'ولی هیچ‌وقت چیزی پیدا نمی‌شد.', 22.34], [25.41, 'ولی هیچ‌وقت *نفهمید…*', 27.58], [28.03, 'چون تمام مدت', 29.47],
+      [30.09, 'داشت توی *گونی‌ها* دنبال قاچاق می‌گشت…', 33.37], [33.72, 'درحالی‌که قاچاق،', 36.36], [36.82, 'خودِ *دوچرخه‌ها* بودن!', 39.1],
     ],
   },
   en: {
@@ -52,17 +52,17 @@ const TX = {
     bubble: ["One day I'll find out", "what you're smuggling!"], border: 'BORDER', sold: 'SOLD!',
     bikes: ['BIKE 1', 'BIKE 2', 'BIKE 3'], end: 'THE SACKS WERE JUST A DISTRACTION!',
     captions: [
-      [0.5, 'Once a month, this man crossed the border'], [2.9, 'with a *bicycle* and a few *sacks*…'],
-      [5.83, 'The *guard* was sure something was up!'], [8.36, 'Every time, he emptied the sacks…'],
-      [10.71, '…but found nothing but *sand.*'], [13.25, '*The next month,* the same man again,'],
-      [15.56, 'the same sacks…'], [16.74, 'and *sand* once again!'], [18.21, 'Each inspection got *tougher,*'],
-      [20.46, 'but he never found a thing.'], [25.41, 'But he *never* figured it out…'], [28.03, 'Because all along,'],
-      [30.09, 'he was searching the *sacks* for contraband…'], [33.72, 'when the contraband…'], [36.82, 'was the *bicycles* themselves!'],
+      [0.35, 'Once a month, this man crossed the border', 3.2], [3.25, 'with a *bicycle* and a few *sacks*…', 5.09],
+      [5.63, 'The *guard* was sure something was up!', 7.66], [8.33, 'Every time, he emptied the sacks…', 10.65],
+      [11.0, '…but found nothing but *sand.*', 12.66], [12.83, '*The next month,* the same man again,', 15.15],
+      [15.36, 'the same sacks…', 16.45], [16.78, 'and *sand* once again!', 18.3], [18.95, 'Each inspection got *tougher,*', 20.62],
+      [20.94, 'but he never found a thing.', 22.46], [25.41, 'But he *never* figured it out…', 26.95],
+      [28.03, 'Because all along, he was searching the *sacks* for contraband…', 31.61],
+      [33.72, 'when the contraband…', 35.07], [36.8, 'was the *bicycles* themselves!', 38.22],
     ],
   },
 };
 const TT = TX[LANG];
-const CAP_END = [5.3, 5.3, 7.94, 10.29, 12.56, 15.17, 16.39, 17.74, 20.14, 22.34, 27.58, 29.47, 33.37, 36.36, 39.1];
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 const OUT = '#1b1b1f';
@@ -727,15 +727,15 @@ function wrap(g, text, maxW) {
 function captions(g, t) {
   const C = TT.captions;
   let i = -1;
-  for (let k = 0; k < C.length; k++) if (t >= C[k][0] && t < Math.min(CAP_END[k] + .35, k + 1 < C.length ? C[k + 1][0] : 99)) i = k;
+  for (let k = 0; k < C.length; k++) if (t >= C[k][0] && t < Math.min(C[k][2] + .35, k + 1 < C.length ? C[k + 1][0] : 99)) i = k;
   if (i < 0) return;
-  const [t0, text] = C[i], tEnd = Math.min(CAP_END[i] + .35, i + 1 < C.length ? C[i + 1][0] : 99);
+  const [t0, text, capEnd] = C[i], tEnd = Math.min(capEnd + .35, i + 1 < C.length ? C[i + 1][0] : 99);
   const size = LANG === 'fa' ? 62 : 60;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
   g.font = LANG === 'fa' ? `900 ${size}px Vazir` : `900 ${size}px Mont`;
   g.textBaseline = 'middle'; g.direction = DIR; g.textAlign = 'left'; g.lineJoin = 'round';
   const lines = wrap(g, text, 900), lh = size * 1.25;
-  const words = text.split(' ').length, dur = Math.max(.3, CAP_END[i] - t0);
+  const words = text.split(' ').length, dur = Math.max(.3, capEnd - t0);
   const fade = 1 - seg(t, tEnd - .15, tEnd);
   let wi = 0;
   const space = g.measureText(' ').width;
@@ -909,7 +909,7 @@ const SCENES = [
       trickle: reachIn > .5 ? .9 : 0,
     });
     frontFog(ctx, t);
-    title(ctx, TT.sand, 600, 820, 120, popIn(t, 10.9, 12.8, .35, .3), { fill: '#ffd23f', rot: -.08 });
+    title(ctx, TT.sand, 600, 820, 120, popIn(t, LANG === 'fa' ? 10.9 : 11.85, 12.85, .35, .3), { fill: '#ffd23f', rot: -.08 });
   } },
   // 3a — month 2, blue bike, magnifier
   { a: 12.9, b: 17.5, draw(t) {
