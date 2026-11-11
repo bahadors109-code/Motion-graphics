@@ -37,7 +37,7 @@ async function stills(ts) {
 async function video() {
   const { browser, p } = await page();
   const duration = await p.evaluate(() => window.DURATION);
-  const tl = await p.evaluate(() => window.TL);
+  const tl = await p.evaluate(() => window.TL || { dur: window.DURATION });
   const frames = Math.round(duration * FPS);
   const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
@@ -58,15 +58,17 @@ async function video() {
 // audio: narration split at 22.1s so the guard's line gets a 2.6s gap,
 // music ducked under the voice, then loudness-normalised to -15 LUFS.
 async function mux(tl) {
-  if (!tl) { const { browser, p } = await page(); tl = await p.evaluate(() => window.TL); await browser.close(); }
+  if (!tl) { const { browser, p } = await page(); tl = await p.evaluate(() => window.TL || { dur: window.DURATION }); await browser.close(); }
   const duration = tl.dur - (tl.warp || 0);
   const silent = path.join(BUILD, `video${SUFFIX}.mp4`);
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD, ...Object.entries(tl).map(([k, v]) => `${k}=${v}`)], { stdio: 'inherit' });
   // narration phrases: [audioStart, audioEnd, offset] — each phrase is moved onto its scene
   const NAR = {
     fa: { file: 'narration.mp3', segs: [[0, 22.1, 0.5], [22.1, 99, 3.1]] },
-    en: { file: 'narration-en.mp3', // last phrase of the file: "The sacks were just a distraction!" -> with the end title
-    segs: [[0, 12.5, 0.35], [12.5, 22.75, 0.01], [22.75, 24.95, 0.14], [24.95, 28.95, 1.49], [28.95, 32.2, 1.75], [32.2, 99, 5.39]] },
+    // phrases of the final ElevenLabs file, each moved onto its caption in the original English cut
+    en: { file: 'narration-en.mp3', segs: [[0, 4.93, .35], [4.93, 7.53, .63], [7.53, 10.36, .53], [10.36, 12.5, .19], [12.5, 15.22, .43],
+      [15.22, 16.66, .2], [16.66, 18.6, -.05], [18.6, 20.76, -.62], [20.76, 22.75, -.43], [22.75, 24.95, 2.35], [24.95, 26.44, 2.82],
+      [26.44, 28.96, 3.63], [28.96, 30.52, 4.57], [30.52, 32.17, 6.29], [32.17, 99, 7.19]] },
   }[LANG];
   const nar = path.join(ROOT, 'assets', NAR.file);
   const parts = NAR.segs.map(([a, b, o, pitch], k) =>

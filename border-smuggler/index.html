@@ -22,17 +22,10 @@
    Optional photo backgrounds: put assets/bg-border.jpg and/or
    assets/bg-village.jpg (1620x2400, ground line around y=1460+240) and
    they replace the procedurally painted backgrounds. */
-const W = 1080, H = 1920;
+const W = 1080, H = 1920, DURATION = 43.0;
 // ---------------------------------------------------------------- language (?lang=en | fa)
 const LANG = new URLSearchParams(location.search).get('lang') || 'fa';
 const DIR = LANG === 'fa' ? 'rtl' : 'ltr';
-// per-language timeline (the English voice-over is shorter than the Persian one)
-const TL = LANG === 'en'
-  // English: the guard's line moves to the final shot; the mid-video pause (anim 22.9–24.6) is skipped
-  ? { bubble: false, endBubble: true, warpAt: 22.9, warp: 1.7, bubbleEnd: 25.0, sack0: 32.6, sack1: 33.8, reveal: 34.4, s7: 37.0, dur: 43.3 }
-  : { bubble: true, endBubble: false, warpAt: 999, warp: 0, bubbleEnd: 25.35, sack0: 33.7, sack1: 35.0, reveal: 36.75, s7: 39.1, dur: 43.0 };
-const DURATION = TL.dur - TL.warp;           // output length
-const animT = t => t >= TL.warpAt ? t + TL.warp : t;
 // display = big comic titles/tags, body = captions & bubble text
 function F(weight, size, kind = 'display') {
   if (LANG === 'fa') return `${weight} ${size}px Vazir`;
@@ -45,12 +38,12 @@ const TX = {
     bubble: ['بالاخره می‌فهمم', 'چی قاچاق می‌کنی!'], border: 'مرز', sold: 'فروخته شد!',
     bikes: ['دوچرخه ۱', 'دوچرخه ۲', 'دوچرخه ۳'], end: 'گونی‌ها فقط حواس‌پرتی بودن!',
     captions: [
-      [0.5, 'ماهی یه بار، این مرد', 5.3], [2.9, 'با یه دوچرخه و چند تا *گونی* از مرز رد می‌شد…', 5.3],
-      [5.83, '*مرزبان* مطمئن بود یه خبری هست!', 7.94], [8.36, 'هر بار گونی‌ها رو خالی می‌کرد…', 10.29],
-      [10.71, 'ولی چیزی جز *شن* پیدا نمی‌کرد.', 12.56], [13.25, '*ماه بعد،* دوباره همون مرد،', 15.17],
-      [15.56, 'همون گونی‌ها…', 16.39], [16.74, 'و باز هم *شن!*', 17.74], [18.21, 'بازرسی هر بار *سخت‌تر* می‌شد،', 20.14],
-      [20.46, 'ولی هیچ‌وقت چیزی پیدا نمی‌شد.', 22.34], [25.41, 'ولی هیچ‌وقت *نفهمید…*', 27.58], [28.03, 'چون تمام مدت', 29.47],
-      [30.09, 'داشت توی *گونی‌ها* دنبال قاچاق می‌گشت…', 33.37], [33.72, 'درحالی‌که قاچاق،', 36.36], [36.82, 'خودِ *دوچرخه‌ها* بودن!', 39.1],
+      [0.5, 'ماهی یه بار، این مرد'], [2.9, 'با یه دوچرخه و چند تا *گونی* از مرز رد می‌شد…'],
+      [5.83, '*مرزبان* مطمئن بود یه خبری هست!'], [8.36, 'هر بار گونی‌ها رو خالی می‌کرد…'],
+      [10.71, 'ولی چیزی جز *شن* پیدا نمی‌کرد.'], [13.25, '*ماه بعد،* دوباره همون مرد،'],
+      [15.56, 'همون گونی‌ها…'], [16.74, 'و باز هم *شن!*'], [18.21, 'بازرسی هر بار *سخت‌تر* می‌شد،'],
+      [20.46, 'ولی هیچ‌وقت چیزی پیدا نمی‌شد.'], [25.41, 'ولی هیچ‌وقت *نفهمید…*'], [28.03, 'چون تمام مدت'],
+      [30.09, 'داشت توی *گونی‌ها* دنبال قاچاق می‌گشت…'], [33.72, 'درحالی‌که قاچاق،'], [36.82, 'خودِ *دوچرخه‌ها* بودن!'],
     ],
   },
   en: {
@@ -59,17 +52,17 @@ const TX = {
     bubble: ["One day I'll find out", "what you're smuggling!"], border: 'BORDER', sold: 'SOLD!',
     bikes: ['BIKE 1', 'BIKE 2', 'BIKE 3'], end: 'THE SACKS WERE JUST A DISTRACTION!',
     captions: [
-      [0.35, 'Once a month, this man crossed the border', 3.15], [3.2, 'with a *bicycle* and a few *sacks*…', 5.02],
-      [5.55, 'The *guard* was sure something was up!', 7.58], [8.18, 'Every time, he emptied the sacks…', 10.5],
-      [10.91, '…but found nothing but *sand.*', 12.52], [12.83, '*The next month,* the same man again,', 15.1],
-      [15.37, 'the same sacks…', 16.5], [16.83, 'and *sand* once again!', 18.3], [18.93, 'Each inspection got *tougher,*', 20.61],
-      [20.94, 'but he never found a thing.', 22.48], [23.2, 'But he *never* figured it out…', 24.83],
-      [26.7, 'Because all along, he was searching the *sacks* for contraband…', 30.26],
-      [30.9, 'when the contraband…', 32.2], [32.27, 'was the *bicycles* themselves!', 33.69],
+      [0.5, 'Once a month, this man crossed the border'], [2.9, 'with a *bicycle* and a few *sacks*…'],
+      [5.83, 'The *guard* was sure something was up!'], [8.36, 'Every time, he emptied the sacks…'],
+      [10.71, '…but found nothing but *sand.*'], [13.25, '*The next month,* the same man again,'],
+      [15.56, 'the same sacks…'], [16.74, 'and *sand* once again!'], [18.21, 'Each inspection got *tougher,*'],
+      [20.46, 'but he never found a thing.'], [25.41, 'But he *never* figured it out…'], [28.03, 'Because all along,'],
+      [30.09, 'he was searching the *sacks* for contraband…'], [33.72, 'when the contraband…'], [36.82, 'was the *bicycles* themselves!'],
     ],
   },
 };
 const TT = TX[LANG];
+const CAP_END = [5.3, 5.3, 7.94, 10.29, 12.56, 15.17, 16.39, 17.74, 20.14, 22.34, 27.58, 29.47, 33.37, 36.36, 39.1];
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
 const OUT = '#1b1b1f';
@@ -734,15 +727,15 @@ function wrap(g, text, maxW) {
 function captions(g, t) {
   const C = TT.captions;
   let i = -1;
-  for (let k = 0; k < C.length; k++) if (t >= C[k][0] && t < Math.min(C[k][2] + .35, k + 1 < C.length ? C[k + 1][0] : 99)) i = k;
+  for (let k = 0; k < C.length; k++) if (t >= C[k][0] && t < Math.min(CAP_END[k] + .35, k + 1 < C.length ? C[k + 1][0] : 99)) i = k;
   if (i < 0) return;
-  const [t0, text, capEnd] = C[i], tEnd = Math.min(capEnd + .35, i + 1 < C.length ? C[i + 1][0] : 99);
+  const [t0, text] = C[i], tEnd = Math.min(CAP_END[i] + .35, i + 1 < C.length ? C[i + 1][0] : 99);
   const size = LANG === 'fa' ? 62 : 60;
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
   g.font = LANG === 'fa' ? `900 ${size}px Vazir` : `900 ${size}px Mont`;
   g.textBaseline = 'middle'; g.direction = DIR; g.textAlign = 'left'; g.lineJoin = 'round';
   const lines = wrap(g, text, 900), lh = size * 1.25;
-  const words = text.split(' ').length, dur = Math.max(.3, capEnd - t0);
+  const words = text.split(' ').length, dur = Math.max(.3, CAP_END[i] - t0);
   const fade = 1 - seg(t, tEnd - .15, tEnd);
   let wi = 0;
   const space = g.measureText(' ').width;
@@ -916,7 +909,7 @@ const SCENES = [
       trickle: reachIn > .5 ? .9 : 0,
     });
     frontFog(ctx, t);
-    title(ctx, TT.sand, 600, 820, 120, popIn(t, LANG === 'fa' ? 10.9 : 11.85, 12.85, .35, .3), { fill: '#ffd23f', rot: -.08 });
+    title(ctx, TT.sand, 600, 820, 120, popIn(t, 10.9, 12.8, .35, .3), { fill: '#ffd23f', rot: -.08 });
   } },
   // 3a — month 2, blue bike, magnifier
   { a: 12.9, b: 17.5, draw(t) {
@@ -976,7 +969,7 @@ const SCENES = [
     if (shrug > .05) { drawBike(ctx, bike); drawPerson(ctx, M); }
     else { drawPerson(ctx, M, 'body'); drawBike(ctx, bike); drawPerson(ctx, M, 'front'); }
     frontFog(ctx, t);
-    if (TL.bubble) bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, TL.bubbleEnd, .3, .25));
+    bubble(ctx, 580, 470, 960, 230, [240, 640], TT.bubble, popIn(t, 22.7, 25.35, .3, .25));
     tag(ctx, TT.border, 670, 1575, 58, popIn(t, 27.5, 28.0, .3, .15), '#ffd23f');
   } },
   // 5 — the other side: the sale
@@ -1004,15 +997,15 @@ const SCENES = [
     stamp(ctx, TT.sold, 540, 520, 96, popIn(t, 29.7, 31.3, .35, .2));
   } },
   // 6 — flashback panels & reveal
-  { a: 31.3, b: TL.s7, draw(t) {
+  { a: 31.3, b: 39.1, draw(t) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     // blurred dim backdrop
     ctx.save(); ctx.filter = 'blur(10px) brightness(.45) saturate(.6)';
     setCam(ctx, 540, 1100, 1.0);
     ctx.drawImage(BG.border, WX0, WY0, WW, WH);
     ctx.restore(); ctx.setTransform(1, 0, 0, 1, 0, 0);
-    const reveal = seg(t, TL.reveal, TL.reveal + .35);
-    const sackA = 1 - easeIO(seg(t, TL.sack0, TL.sack1));
+    const reveal = seg(t, 36.75, 37.1);
+    const sackA = 1 - easeIO(seg(t, 33.7, 35.0));
     const cols = ['red', 'blue', 'black'], labels = TT.bikes;
     const zp = .5;
     for (let i = 0; i < 3; i++) {
@@ -1038,7 +1031,7 @@ const SCENES = [
       ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
       ctx.setTransform(zp, 0, 0, zp, px + pw / 2 - 560 * zp, py + ph / 2 - 1360 * zp);
       const sep = '#8a6f50';
-      const pulse = reveal > 0 ? (.75 + .25 * Math.sin((t - TL.reveal) * 8)) * reveal : 0;
+      const pulse = reveal > 0 ? (.75 + .25 * Math.sin((t - 36.75) * 8)) * reveal : 0;
       drawBike(ctx, { x: INS.bikeX, y: GY, color: reveal > 0 ? mixHex(sep, BIKE_COL[cols[i]], reveal) : sep, highlight: reveal > .5 ? BIKE_HI[cols[i]] : null,
         sacks: sackA, open: 1, sackTint: '#a8916c', glow: pulse, glowColor: '#ffe27a' });
       ctx.restore();
@@ -1046,18 +1039,17 @@ const SCENES = [
       // film scratches on the old footage
       ctx.save(); ctx.globalAlpha = .25 * (1 - reveal); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
       const sxp = px + ((t * 997 + i * 300) % pw); ctx.beginPath(); ctx.moveTo(sxp, py); ctx.lineTo(sxp + 6, py + ph); ctx.stroke(); ctx.restore();
-      tag(ctx, labels[i], px + 150, py + ph / 2 + 30, 56, popIn(t, TL.reveal + .1 + i * .15, TL.s7, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
+      tag(ctx, labels[i], px + 150, py + ph / 2 + 30, 56, popIn(t, 36.85 + i * .15, 39.1, .3, .2), '#ffd23f', OUT, (i - 1) * .04);
     }
   } },
   // 7 — punchline: the guard is still sieving
-  { a: TL.s7, b: TL.dur, draw(t) {
+  { a: 39.1, b: 43.0, draw(t) {
     const [sx, sy] = shake(t, 2.5);
-    setCam(ctx, 560, lerp(1320, 1280, seg(t, TL.s7, TL.dur)), lerp(1.12, 1.2, seg(t, TL.s7, TL.dur)), sx, sy);
+    setCam(ctx, 560, lerp(1320, 1280, seg(t, 39.1, 43)), lerp(1.12, 1.2, seg(t, 39.1, 43)), sx, sy);
     drawBg(ctx, 'border', t);
     sandPile(ctx, 560, GY + 6, 380, 120);
     sandPile(ctx, 820, GY + 10, 200, 50);
-    const talking = TL.endBubble && t > TL.s7 + .3 && t < TL.s7 + 2.4;
-    const G = { kind: 'guard', x: 420, y: GY, s: 1, face: 1, expr: talking ? 'angry' : 'focused', look: talking ? [5, -2] : [3, 8], sweat: t, arms: {} };
+    const G = { kind: 'guard', x: 420, y: GY, s: 1, face: 1, expr: 'focused', look: [3, 8], sweat: t, arms: {} };
     const sxv = 560 + Math.sin(t * 30) * 14, syv = 1335;
     G.arms.front = { t: [sxv + 95, syv + 4] }; G.arms.back = { t: [sxv - 100, syv + 4] };
     drawPerson(ctx, G, 'body'); drawPerson(ctx, G, 'front');
@@ -1065,23 +1057,20 @@ const SCENES = [
     drawSieve(ctx, sxv, syv);
     fly(ctx, 470, 1010, t, 0); fly(ctx, 520, 980, t + 1.3, 1);
     frontFog(ctx, t);
-    if (TL.endBubble) bubble(ctx, 580, 360, 960, 230, [400, 560], TT.bubble, popIn(t, TL.s7 + .3, TL.s7 + 2.4, .3, .2));
-    const et = TL.endBubble ? TL.s7 + 2.5 : TL.s7 + .45;
-    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, et, TL.dur + .5, .45, .1));
-    const st = popIn(t, et + .35, TL.dur + .5, .4, .1);
+    title(ctx, TT.end, 540, 1640, LANG === 'fa' ? 74 : 66, popIn(t, 39.55, 43.5, .45, .1));
+    const st = popIn(t, 39.9, 43.5, .4, .1);
     if (st) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = st.a; ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 12; ctx.lineCap = 'round';
-      const p = easeOut(seg(t, et + .35, et + .95)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
+      const p = easeOut(seg(t, 39.9, 40.5)); const uy = 1722; ctx.beginPath(); ctx.moveTo(880, uy); ctx.quadraticCurveTo(540, uy + 30, lerp(880, 200, p), uy + 10 * p); ctx.stroke(); ctx.restore(); }
   } },
 ];
 let PANELS = [];
 
 function renderFrame(t) {
-  const to = t; t = animT(t);   // to = output time (captions, fades), t = animation time
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
   const sc = SCENES.find(s => t >= s.a && t < s.b) || SCENES[SCENES.length - 1];
   ctx.save(); sc.draw(t); ctx.restore();
-  captions(ctx, to);
+  captions(ctx, t);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   // ambient dust motes
   for (let i = 0; i < 40; i++) {
@@ -1095,7 +1084,7 @@ function renderFrame(t) {
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[Math.floor(t * 24) % 4], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
   // cut flashes (quick white dip) & fades
   for (const s of SCENES.slice(1)) { const d = Math.abs(t - s.a); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .55})`; ctx.fillRect(0, 0, W, H); } }
-  const fin = 1 - seg(to, 0, .5), fout = seg(to, DURATION - .8, DURATION);
+  const fin = 1 - seg(t, 0, .5), fout = seg(t, 42.2, 43);
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }
 
@@ -1106,7 +1095,7 @@ async function init() {
   BG.village = pv || paintBackground('village');
   paintFx();
   PANELS = [0, 1, 2].map(() => mk(960, 410));
-  window.renderFrame = renderFrame; window.DURATION = DURATION; window.TL = TL; window.ready = true;
+  window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
   const q = new URLSearchParams(location.search);
   if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
