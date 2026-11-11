@@ -17,7 +17,7 @@
 /* «جعبه‌ای که نباید باز می‌شد» / "The Box That Shouldn't Be Opened" — motion graphic, 1080x1920, deterministic.
    window.renderFrame(t) draws the frame at time t (seconds).
    All on-screen text lives in TT; narration caption timing in CAP_END. */
-const W = 1080, H = 1920, DURATION = 47.5;
+const W = 1080, H = 1920, DURATION = 50.5;   // output length; scenes after 27s run 1.2s late (see renderFrame)
 const LANG = 'en', DIR = 'ltr';
 function F(weight, size, kind = 'display') {
   return kind === 'display' ? `${Math.round(size * .92)}px Lucky` : `${weight} ${Math.round(size * .9)}px Mont`;
@@ -31,18 +31,18 @@ const TT = {
   guard1: ['Everyone! Even the', 'pastry boxes!'],
   nothing: 'NOTHING!',
   end: ['SAME MISTAKE AGAIN:', 'HE WAS LOOKING FOR SOMETHING HIDDEN!'],
-  // narration captions [start, text]; *word* = highlighted. Draft – retimed once the English voice-over arrives.
+  // narration captions [start, text]; *word* = highlighted — timed to the ElevenLabs voice-over (output time)
   captions: [
     [0.5, 'Every Friday, an employee left the store with a box of *pastries.*'],
-    [4.4, 'And every time, the guard opened the box.'],
+    [4.87, 'And every time, the guard opened the box.'],
     [8.4, 'Every time, it was just *pastries!*'],
-    [10.8, 'The guard would take one, eat it, and say: *“Go on, enjoy!”*'],
-    [29.0, 'This time, he emptied the *whole box…* and still, nothing!'],
-    [35.8, 'The watches were never in the box… they were on his *wrist!*'],
-    [39.8, 'The box was only there to make the guard look *somewhere else.*'],
+    [13.26, 'The guard would take one, eat it, and say: *“Go on, enjoy!”*'],
+    [30.2, 'This time, he emptied the *whole box…* and still, nothing!'],
+    [36.95, 'The watches were never in the box… they were on his *wrist!*'],
+    [41.3, 'The box was only there to make the guard look *somewhere else.*'],
   ],
 };
-const CAP_END = [4.2, 7.4, 10.5, 14.6, 33.6, 39.5, 43.6];
+const CAP_END = [4.46, 7.72, 10.94, 17.21, 34.65, 40.5, 44.43];
 
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -683,15 +683,15 @@ const SCENES = [
     drawCase(ctx, 3, flash);
     const ox = lerp(-200, 470, easeOut(seg(t, 18.0, 18.9)));
     const O = { kind: 'director', x: ox, y: GY, s: 1, face: 1, walk: t < 18.9 ? t * 8 : null, expr: 'angry', look: [4, 0], arms: { back: { t: [ox - 30, GY - 470] } } };
-    if (t > 19.0 && t < 21.8) O.arms.front = { a: [-2.5, -2.7], open: true };       // pointing back at the case
-    else if (t >= 21.8) O.arms.front = { a: [-.5, -.8], open: true };
-    const G = { kind: 'guard', x: GUARD_X, y: GY, s: 1, face: -1, expr: t > 24.2 ? 'happy' : 'neutral', look: [4, 0], arms: t > 24.2 ? { front: { a: [-1.0, -1.9], open: true } } : {} };
+    if (t > 19.0 && t < 22.9) O.arms.front = { a: [-2.5, -2.7], open: true };       // pointing back at the case
+    else if (t >= 22.9) O.arms.front = { a: [-.5, -.8], open: true };
+    const G = { kind: 'guard', x: GUARD_X, y: GY, s: 1, face: -1, expr: t > 25.2 ? 'happy' : 'neutral', look: [4, 0], arms: t > 25.2 ? { front: { a: [-1.0, -1.9], open: true } } : {} };
     drawPerson(ctx, G); drawDesk(ctx);
     drawPerson(ctx, O); ledger(ctx, ox - 30, GY - 470);
     const oh = toScreen(cam, ox, headY), gh = toScreen(cam, GUARD_X, headY);
-    bubble(ctx, 540, 470, 860, 230, [oh[0] + 30, oh[1] - 140], TT.owner1, popIn(t, 19.0, 21.7, .3, .2));
-    bubble(ctx, 540, 470, 760, 230, [oh[0] + 30, oh[1] - 140], TT.owner2, popIn(t, 21.8, 24.0, .3, .2));
-    bubble(ctx, 560, 470, 680, 230, [gh[0] - 30, gh[1] - 140], TT.guard1, popIn(t, 24.2, 26.9, .3, .2));
+    bubble(ctx, 540, 470, 860, 230, [oh[0] + 30, oh[1] - 140], TT.owner1, popIn(t, 19.0, 22.9, .3, .2));
+    bubble(ctx, 540, 470, 760, 230, [oh[0] + 30, oh[1] - 140], TT.owner2, popIn(t, 23.0, 25.1, .3, .2));
+    bubble(ctx, 560, 470, 680, 230, [gh[0] - 30, gh[1] - 140], TT.guard1, popIn(t, 25.2, 27.95, .3, .2));
   } },
   // 4 — Friday #4: the box is emptied completely
   { a: 27, b: 35.6, draw(t) {
@@ -719,9 +719,9 @@ const SCENES = [
   // 5 — outside: the sleeve goes up… and the Fridays again
   { a: 35.6, b: 43.8, draw(t) {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(BG_OUT, 0, 0);
-    if (t < 37.8) {
+    if (t < 39.4) {
       // close-up of the forearm: the sleeve slides back, the watch shines
-      const sl = easeIO(seg(t, 36.0, 36.9)), gl = Math.max(0, Math.sin((t - 36.9) * 5)) * seg(t, 36.9, 37.1);
+      const sl = easeIO(seg(t, 38.0, 38.8)), gl = Math.max(0, Math.sin((t - 38.8) * 5)) * seg(t, 38.8, 39.0);
       ctx.save(); ctx.translate(540, 1000); ctx.rotate(-.12);
       limb(ctx, [[-700, 40], [260, 0]], 150, '#f1efe9');
       ctx.beginPath(); ctx.ellipse(330, 0, 110, 92, 0, 0, 7); fillOut(ctx, '#f6f5f1', 8);
@@ -735,7 +735,7 @@ const SCENES = [
       ctx.fillStyle = 'rgba(10,10,20,.45)'; ctx.fillRect(0, 0, W, H);
       const zp = .62, pw = 960, ph = 380;
       for (let i = 0; i < 3; i++) {
-        const ent = easeOut(seg(t, 37.8 + i * .3, 38.4 + i * .3)); if (ent <= 0) continue;
+        const ent = easeOut(seg(t, 39.4 + i * .3, 40.0 + i * .3)); if (ent <= 0) continue;
         const px = 60 + (1 - ent) * (i % 2 ? -1100 : 1100), py = 170 + i * 430;
         const pg = PANELS[i].getContext('2d');
         pg.setTransform(1, 0, 0, 1, 0, 0); pg.clearRect(0, 0, pw, ph);
@@ -747,19 +747,19 @@ const SCENES = [
         ctx.filter = 'sepia(.85) brightness(.95)'; ctx.drawImage(PANELS[i], px, py); ctx.filter = 'none';
         // the watch, back in colour, circled
         const wsx = px + pw / 2 + (d.wrist[0] - 720) * zp, wsy = py + ph / 2 + (d.wrist[1] - 1300) * zp;
-        const hl = easeBack(seg(t, 39.0 + i * .35, 39.4 + i * .35));
+        const hl = easeBack(seg(t, 40.4 + i * .35, 40.8 + i * .35));
         if (hl > 0) {
           ctx.lineWidth = 9; ctx.strokeStyle = '#ffd23f'; ctx.beginPath(); ctx.ellipse(wsx, wsy, 46 * hl, 46 * hl, 0, 0, 7); ctx.stroke();
           ctx.setTransform(1, 0, 0, 1, 0, 0); watchOnWrist(ctx, wsx, wsy, Math.PI / 2 + .3, WATCH_COL[i], .8 * zp / .62);
         }
         ctx.restore();
-        tag(ctx, TT.fridays[i + 1], px + 150, py + 60, 46, popIn(t, 38.0 + i * .3, 43.8, .3, .2), '#fbf8f1', OUT, -.04);
+        tag(ctx, TT.fridays[i + 1], px + 150, py + 60, 46, popIn(t, 39.6 + i * .3, 43.8, .3, .2), '#fbf8f1', OUT, -.04);
       }
     }
   } },
   // 6 — punchline: mouth full, still checking the bottom of the box
-  { a: 43.8, b: 48, draw(t) {
-    const p = easeIO(seg(t, 43.8, 47.5));
+  { a: 43.8, b: 52, draw(t) {
+    const p = easeIO(seg(t, 43.8, 49.3));
     const cam = [GUARD_X - 60, 1260, lerp(1.25, 1.35, p)], [sx, sy] = shake(t, 2);
     setCam(ctx, cam[0], cam[1], cam[2], sx, sy); bg(ctx);
     const bp = [GUARD_X - 150, GY - 760];
@@ -769,23 +769,26 @@ const SCENES = [
     drawBox(ctx, bp[0], bp[1], { lid: 1, n: 0, rot: Math.PI + Math.sin(t * 3) * .1 });
     drawPerson(ctx, G, 'front');
     for (let i = 0; i < 5; i++) { const q = ((t * 1.5 + i * .2) % 1); ctx.fillStyle = '#d9a86a'; ctx.fillRect(GUARD_X - 60 - i * 6, GY - 610 + q * 160, 7, 7); }
-    title(ctx, TT.end[0], 540, 240, 72, popIn(t, 44.2, 49, .45, .1), { maxW: 1000 });
-    title(ctx, TT.end[1], 540, 385, 60, popIn(t, 45.0, 49, .45, .1), { maxW: 1020, fill: '#ffd23f' });
+    title(ctx, TT.end[0], 540, 240, 72, popIn(t, 44.1, 51, .45, .1), { maxW: 1000 });
+    title(ctx, TT.end[1], 540, 385, 60, popIn(t, 45.86, 51, .45, .1), { maxW: 1020, fill: '#ffd23f' });
   } },
 ];
 
 function renderFrame(t) {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-  const sc = SCENES.find(s => t >= s.a && t < s.b) || SCENES[SCENES.length - 1];
-  ctx.save(); sc.draw(t); ctx.restore();
+  // the owner scene is held 1.2s longer for the dialogue; everything after it runs 1.2s later
+  let sc, ta;
+  if (t >= 27 && t < 28.2) { sc = SCENES[2]; ta = t; }
+  else { ta = t < 27 ? t : t - 1.2; sc = SCENES.find(s => ta >= s.a && ta < s.b) || SCENES[SCENES.length - 1]; }
+  ctx.save(); sc.draw(ta); ctx.restore();
   captions(ctx, t);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = 'rgba(255,200,150,.14)'; ctx.fillRect(0, 0, W, H);
   ctx.globalCompositeOperation = 'source-over';
   ctx.drawImage(VIGN, 0, 0);
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[Math.floor(t * 24) % 4], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
-  for (const c of [8, 11.333, 14.667, 18, 27, 35.6, 37.8, 43.8]) { const d = Math.abs(t - c); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .45})`; ctx.fillRect(0, 0, W, H); } }
+  for (const c of [8, 11.333, 14.667, 18, 28.2, 36.8, 40.6, 45.0]) { const d = Math.abs(t - c); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .45})`; ctx.fillRect(0, 0, W, H); } }
   const fin = 1 - seg(t, 0, .5), fout = seg(t, DURATION - .8, DURATION);
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }

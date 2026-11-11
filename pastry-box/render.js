@@ -20,7 +20,18 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 // Voice-over phrases: [audioStart, audioEnd, offsetIntoVideo]. Filled in once the voice file arrives.
 // Voice-over phrases are placed once the English ElevenLabs file arrives.
 // Voice-over phrases [audioStart, audioEnd, offsetIntoVideo, pitch?] — filled in once the ElevenLabs file arrives.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 7.5, .5],                     // Every Friday… / And every time, the guard opened the box.
+  [7.5, 10.55, .66],                // Every time, it was just pastries!
+  [10.55, 15.1, 2.43],              // The guard would take one… "Go on, enjoy!" (lands on the 3rd Friday's bubble)
+  [15.1, 19.5, 3.56, .8],           // owner: For three weeks now…
+  [19.5, 21.8, 3.35, .8],           // owner: Do you search everyone on the way out?
+  [21.8, 24.85, 3.31, .84],         // guard: Everyone! Even the pastry boxes!
+  [24.85, 29.8, 5.1],               // This time, he emptied the whole box…
+  [29.8, 33.9, 6.87],               // The watches were never in the box… on his wrist!
+  [33.9, 37.5, 7.15],               // The box was only there…
+  [37.5, 99, 7.57],                 // Same mistake again…
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
@@ -55,7 +66,7 @@ async function video() {
   mux(duration);
 }
 
-function mux(duration = 47.5) {
+function mux(duration = 50.5) {
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
   const hasVoice = fs.existsSync(NARRATION.file);
   const inputs = ['-i', path.join(BUILD, 'music.wav'), '-i', path.join(BUILD, 'sfx.wav'), '-i', SILENT];

@@ -12,12 +12,12 @@ import wave
 import numpy as np
 
 SR = 44100
-DURATION = 47.5
+DURATION = 50.5
 N = int(SR * DURATION)
 rng = np.random.default_rng(21)
-OWNER0, OWNER1 = 18.0, 27.0
-SLEEVE = 36.9
-END_CHORD = 45.4
+OWNER0, OWNER1 = 18.0, 28.2
+SLEEVE = 40.0
+END_CHORD = 48.9
 
 
 def midi(m):
@@ -99,7 +99,7 @@ while t < END_CHORD - .05:
     root, chord = prog[bar % 4]
     sparse = OWNER0 <= t < OWNER1
     intro = t < 8
-    build = 27 <= t < 35.6
+    build = 28.2 <= t < 36.8
     for st, semi in bass_pat:
         bt = t + st * E8
         if bt >= END_CHORD - .05 or (sparse and st % 4):
@@ -117,8 +117,8 @@ while t < END_CHORD - .05:
             music.add(snap(), bt, .16 if not sparse else .1, -.25)
     if build:                                          # shaker 16ths build up during Friday #4
         for k in range(16):
-            music.add(noise_hit(.05, 5000, 12000, .012), t + k * E8 / 2, .02 + .02 * ((t - 27) / 8.6), .3)
-    if (8 <= t < OWNER0 or t >= 35.6) and bar % 2 == 0:
+            music.add(noise_hit(.05, 5000, 12000, .012), t + k * E8 / 2, .02 + .02 * ((t - 28.2) / 8.6), .3)
+    if (8 <= t < OWNER0 or t >= 36.8) and bar % 2 == 0:
         for st, m in hook:
             bt = t + st * E8
             if bt < END_CHORD - .05:
@@ -193,13 +193,13 @@ events = [(.2, whoosh(.8), .2, 0), (4.6 + .1 / .55, card(), .4, .2)]
 for k, t0 in enumerate((8.0, 11.333, 14.667)):
     events += [(t0, whoosh(.3), .2, 0), (t0 + .1, card(), .4, .2), (t0 + 1.25, chomp(), .45, .3), (t0 + 2.0, pop(), .3, 0)]
 events += [
-    (18.0, whoosh(.5), .2, 0), (19.0, pop(), .3, 0), (21.8, pop(), .3, 0), (24.2, pop(), .3, 0),
-    (27.0, paper(), .5, -.2), (27.6, card(), .4, .2),
-    (28.2, pop(), .15, 0), (28.55, pop(), .15, 0), (28.9, pop(), .15, 0), (29.25, pop(), .15, 0),
-    (30.4, whoosh(.5), .2, .2), (31.0, card(), .35, .2), (32.6, pop(), .45, 0),
-    (35.6, whoosh(.5), .25, 0), (36.0, noise_hit(.8, 2000, 9000, .2, .3), .15, 0),
-    (37.8, whoosh(.6), .25, 0), (39.0, pop(), .25, 0), (39.35, pop(), .25, 0), (39.7, pop(), .25, 0),
-    (43.8, whoosh(.5), .22, 0), (44.2, pop(), .4, 0), (45.0, pop(), .35, 0), (44.0, chomp(), .4, .3),
+    (18.0, whoosh(.5), .2, 0), (19.0, pop(), .3, 0), (23.0, pop(), .3, 0), (25.2, pop(), .3, 0),
+    (28.2, paper(), .5, -.2), (28.8, card(), .4, .2),
+    (29.4, pop(), .15, 0), (29.75, pop(), .15, 0), (30.1, pop(), .15, 0), (30.45, pop(), .15, 0),
+    (31.6, whoosh(.5), .2, .2), (32.2, card(), .35, .2), (33.8, pop(), .45, 0),
+    (36.8, whoosh(.5), .25, 0), (39.2, noise_hit(.8, 2000, 9000, .2, .3), .15, 0),
+    (40.6, whoosh(.6), .25, 0), (41.6, pop(), .25, 0), (41.95, pop(), .25, 0), (42.3, pop(), .25, 0),
+    (45.0, whoosh(.5), .22, 0), (45.3, pop(), .4, 0), (47.06, pop(), .35, 0), (45.2, chomp(), .4, .3),
 ]
 for at, sig, g, p in events:
     sfx.add(sig, at, g, p)
