@@ -17,7 +17,7 @@
 /* «دزدِ تابلو» / "The Painting Thief" — motion graphic, 1080x1920, deterministic.
    window.renderFrame(t) draws the frame at time t (seconds).
    All on-screen text, captions and their timing live in TT / CAP_END below. */
-const W = 1080, H = 1920, DURATION = 42.0;
+const W = 1080, H = 1920, DURATION = 47.5;
 const LANG = 'en', DIR = 'ltr';
 function F(weight, size, kind = 'display') {
   return kind === 'display' ? `${Math.round(size * .92)}px Lucky` : `${weight} ${Math.round(size * .9)}px Mont`;
@@ -27,19 +27,19 @@ const TT = {
   wet: ['WET', 'PAINT'], nothing: 'NOTHING!', exit: 'EXIT',
   guardQ: ['Where are you', 'taking that?'], manA: ["All done. Just", "packing up my stuff."],
   dirQ: ["Where's the", 'painting?!'], guardA: ['The painter took it…', "wasn't he done?"],
-  end: 'EVERYONE CHECKED THE TOOLBOX. NOBODY ASKED: WHO ARE YOU?',
-  // narration captions [start, text]; *word* = highlighted. Draft translation – replaced once the final English voice arrives.
+  end: ['EVERYONE CHECKED THE TOOLBOX.', 'NOBODY ASKED: WHO ARE YOU?'],
+  // narration captions [start, text]; *word* = highlighted — timed to the ElevenLabs voice-over
   captions: [
     [0.5, 'Three days in a row, a man in work clothes came to the museum.'],
-    [4.4, "He'd put up a *“Wet Paint”* sign and get to work."],
+    [4.95, "He'd put up a *“Wet Paint”* sign and get to work."],
     [8.3, 'Every day as he left, the guard searched his *toolbox.*'],
-    [13.2, 'He even unfolded the *rags…* but found nothing.'],
-    [33.2, 'The museum had *never* hired a painter!'],
-    [35.4, 'He spent three days there…'],
-    [36.9, 'so that on day four, *no one* would be surprised to see him!'],
+    [13.9, 'He even unfolded the *rags…* but found nothing.'],
+    [33.5, 'The museum had *never* hired a painter!'],
+    [36.2, 'He spent three days there…'],
+    [38.25, 'so that on day four, *no one* would be surprised to see him!'],
   ],
 };
-const CAP_END = [4.2, 7.6, 12.6, 17.4, 35.1, 36.7, 38.6];
+const CAP_END = [4.38, 7.77, 11.56, 17.07, 35.78, 37.94, 41.61];
 
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -793,11 +793,11 @@ const SCENES = [
     drawPerson(ctx, G); drawPerson(ctx, D);
     const dh = toScreen(cam, dx, headY), gh = toScreen(cam, 690, headY);
     bubble(ctx, 540, 470, 760, 230, [dh[0] + 40, dh[1] - 140], TT.dirQ, popIn(t, 28.7, 30.5, .3, .2));
-    bubble(ctx, 540, 470, 860, 230, [gh[0] - 30, gh[1] - 140], TT.guardA, popIn(t, 30.6, 33.0, .3, .2));
+    bubble(ctx, 540, 470, 860, 230, [gh[0] - 30, gh[1] - 140], TT.guardA, popIn(t, 30.6, 33.3, .3, .2));
   } },
   // 6 — the reveal: there never was a painter
-  { a: 33, b: 38.5, draw(t) {
-    const p = easeIO(seg(t, 33, 38.5));
+  { a: 33, b: 41.9, draw(t) {
+    const p = easeIO(seg(t, 33, 41.9));
     const cam = [lerp(500, 540, p), lerp(1150, 1080, p), lerp(1.05, 1.22, p)], [sx, sy] = shake(t, 2);
     setCam(ctx, cam[0], cam[1], cam[2], sx, sy); bg(ctx);
     drawWetSign(ctx, SIGN_X, SIGN_Y, 1);
@@ -811,11 +811,12 @@ const SCENES = [
     }
   } },
   // 7 — final shot: the yellow sign beside the empty wall
-  { a: 38.5, b: 42.5, draw(t) {
-    const p = easeIO(seg(t, 38.5, 42));
+  { a: 41.9, b: 48, draw(t) {
+    const p = easeIO(seg(t, 41.9, 47.5));
     setCam(ctx, lerp(600, 610, p), lerp(1080, 1060, p), lerp(1.18, 1.26, p)); bg(ctx);
     drawWetSign(ctx, SIGN_X, SIGN_Y, 1);
-    title(ctx, TT.end, 540, 330, 66, popIn(t, 38.9, 43, .45, .1), { maxW: 980 });
+    title(ctx, TT.end[0], 540, 290, 64, popIn(t, 42.15, 49, .45, .1), { maxW: 1000 });
+    title(ctx, TT.end[1], 540, 395, 64, popIn(t, 44.05, 49, .45, .1), { maxW: 1000, fill: '#ffd23f' });
   } },
 ];
 

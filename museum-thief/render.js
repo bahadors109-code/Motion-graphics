@@ -18,7 +18,17 @@ fs.mkdirSync(BUILD, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 // Voice-over phrases: [audioStart, audioEnd, offsetIntoVideo]. Filled in once the voice file arrives.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+// The ElevenLabs file holds narration, the four dialogue lines and the end text, in that order.
+// Dialogue lines get a lower pitch (4th value) so the guard / painter / director sound different from the narrator.
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 7.6, .5], [7.6, 11.4, .31], [11.4, 13.8, 2.19], [13.8, 15.5, 1.93],      // narration, days 1–2
+  [15.5, 17.1, 5.34, .82],                                                     // guard: Where are you taking that?
+  [17.1, 19.6, 6.18, .9],                                                      // painter: All done. Just packing up my stuff.
+  [19.6, 21.1, 9.04, .78],                                                     // director: Where's the painting?!
+  [21.1, 24.0, 9.35, .82],                                                     // guard: The painter took it… wasn't he done?
+  [24.0, 26.9, 9.24], [26.9, 29.1, 9.02], [29.1, 32.9, 8.99],                  // the reveal
+  [32.9, 99, 9.07],                                                            // end text
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
@@ -53,15 +63,15 @@ async function video() {
   mux(duration);
 }
 
-function mux(duration = 42) {
+function mux(duration = 47.5) {
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
   const hasVoice = fs.existsSync(NARRATION.file);
   const inputs = ['-i', path.join(BUILD, 'music.wav'), '-i', path.join(BUILD, 'sfx.wav'), '-i', SILENT];
   let filter;
   if (hasVoice) {
     inputs.push('-i', NARRATION.file);
-    const parts = NARRATION.segs.map(([a, b, o], k) =>
-      `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
+    const parts = NARRATION.segs.map(([a, b, o, pitch], k) =>
+      `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
     filter = [...parts,
       `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},asplit=2[voice][key]`,
       `[0:a]volume=0.45[mus]`, `[mus][key]sidechaincompress=threshold=0.05:ratio=3:attack=30:release=450[duck]`, `[1:a]volume=0.45[fx]`,

@@ -12,11 +12,11 @@ import wave
 import numpy as np
 
 SR = 44100
-DURATION = 42.0
+DURATION = 47.5
 N = int(SR * DURATION)
 rng = np.random.default_rng(3)
 REVEAL = 33.0
-END_CHORD = 39.4
+END_CHORD = 45.4
 
 
 def midi(m):
@@ -213,10 +213,10 @@ events = [
     (16.0, pop(), .45, 0),          # NOTHING!
     (18.0, paper(), .6, -.2), (18.1, pop(), .3, 0),
     (19.1, rustle(.5), .2, 0),      # painting off the hook
-    (21.0, pop(), .4, 0), (23.4, pop(), .4, 0),
-    (28.7, pop(), .4, 0), (30.6, pop(), .4, 0),
-    (33.0, whoosh(.6), .2, 0),
-    (38.5, whoosh(.5), .25, 0), (38.95, pop(), .45, 0),
+    (21.0, pop(), .3, 0), (23.4, pop(), .3, 0),
+    (28.7, pop(), .3, 0), (30.6, pop(), .3, 0),
+    (33.3, whoosh(.6), .2, 0),
+    (41.9, whoosh(.5), .25, 0), (42.15, pop(), .45, 0), (44.05, pop(), .4, 0),
 ]
 for at, sig, g, p in events:
     sfx.add(sig, at, g, p)
