@@ -1,12 +1,13 @@
-frame 0/1500
-frame 150/1500
-frame 300/1500
-frame 450/1500
-frame 600/1500
-frame 750/1500
-frame 900/1500
-frame 1050/1500
-frame 1200/1500
-frame 1350/1500
+frame 0/1545
+frame 150/1545
+frame 300/1545
+frame 450/1545
+frame 600/1545
+frame 750/1545
+frame 900/1545
+frame 1050/1545
+frame 1200/1545
+frame 1350/1545
+frame 1500/1545
 wrote /home/user/Motion-graphics/witness/build
-wrote /home/user/Motion-graphics/output/witness.mp4 (music + sfx only)
+wrote /home/user/Motion-graphics/output/witness.mp4 (with voice-over)

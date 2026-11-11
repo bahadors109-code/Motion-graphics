@@ -19,8 +19,20 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 // Voice-over phrases: [audioStart, audioEnd, offsetIntoVideo]. Filled in once the voice file arrives.
 // Voice-over phrases are placed once the English ElevenLabs file arrives.
-// Dialogue lines get a lower pitch (4th value) so the guard / painter / director sound different from the narrator.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+// The ElevenLabs file follows script/voiceover-en.txt: narration, dialogue lines and the end text, in order.
+// [audioStart, audioEnd, offsetIntoVideo, pitch?] — dialogue lines are pitched down per character.
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 4.75, .5],                    // After the jewelry store robbery…
+  [4.75, 9.0, 3.22, .86],           // witness: He was tall! Black coat, gloves… and a bag!
+  [9.0, 10.8, 3.38, .86],           // witness: He ran down that alley!
+  [10.8, 14.2, 7.53, .86],          // witness: I even saw him put a gold watch…
+  [14.2, 17.8, 7.66],               // But one sentence made the officer stop writing…
+  [17.8, 19.65, 9.26, .8],          // officer: You saw it from your window?
+  [19.65, 21.45, 9.88, .86],        // witness: Yes, everything!
+  [21.45, 25.3, 13.74, .8],         // officer: Then how did you see inside…
+  [25.3, 33.0, 13.8],               // The witness knew the details…
+  [33.0, 99, 13.7],                 // One detail too many ruined the whole story.
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
@@ -55,7 +67,7 @@ async function video() {
   mux(duration);
 }
 
-function mux(duration = 50) {
+function mux(duration = 51.5) {
   execFileSync('python3', [path.join(ROOT, 'music.py'), BUILD], { stdio: 'inherit' });
   const hasVoice = fs.existsSync(NARRATION.file);
   const inputs = ['-i', path.join(BUILD, 'music.wav'), '-i', path.join(BUILD, 'sfx.wav'), '-i', SILENT];

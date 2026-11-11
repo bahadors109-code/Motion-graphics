@@ -17,7 +17,7 @@
 /* «شاهدِ زیادی دقیق» / "The Witness Who Saw Too Much" — motion graphic, 1080x1920, deterministic.
    window.renderFrame(t) draws the frame at time t (seconds).
    All on-screen text lives in TT; narration caption timing in CAP_END. */
-const W = 1080, H = 1920, DURATION = 50.0;
+const W = 1080, H = 1920, DURATION = 51.5;
 const LANG = 'en', DIR = 'ltr';
 function F(weight, size, kind = 'display') {
   return kind === 'display' ? `${Math.round(size * .92)}px Lucky` : `${weight} ${Math.round(size * .9)}px Mont`;
@@ -30,15 +30,15 @@ const TT = {
   c1: ['You saw it from', 'your window?'], w4: ['Yes, everything!'],
   c2: ['Then how did you see inside', 'the shop through this shutter?'],
   end: ['ONE DETAIL TOO MANY', 'RUINED THE WHOLE STORY.'],
-  // narration captions [start, text]; *word* = highlighted. Draft – retimed once the English voice-over arrives.
+  // narration captions [start, text]; *word* = highlighted — timed to the ElevenLabs voice-over
   captions: [
     [0.5, 'After the jewelry store robbery, a man said he saw *everything* from his window.'],
     [22.2, 'But one sentence made the officer *stop writing…*'],
-    [39.3, 'The witness knew the details a little *too well…*'],
-    [42.5, 'because during the robbery, he was on the *other side* of the shutter!'],
+    [39.4, 'The witness knew the details a little *too well…*'],
+    [42.8, 'because during the robbery, he was on the *other side* of the shutter!'],
   ],
 };
-const CAP_END = [6.5, 26.4, 42.3, 45.5];
+const CAP_END = [5.1, 25.2, 42.4, 46.4];
 
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -756,24 +756,24 @@ const SCENES = [
     }
   } },
   // 5 — "Then how did you see inside…?"  The smile fades.
-  { a: 35, b: 45.6, draw(t) {
-    const push = easeIO(seg(t, 39.3, 45.6));
+  { a: 35, b: 46.6, draw(t) {
+    const push = easeIO(seg(t, 39.4, 46.6));
     const cam = lerpCam(TWO, [650, 1060, 1.35], push), [sx, sy] = shake(t, 2);
     setCam(ctx, cam[0], cam[1], cam[2], sx, sy); bg(ctx);
-    const turned = t > 38.4 && t < 39.6;
+    const turned = t > 38.8 && t < 40.0;
     drawCop(ctx, t, { look: [7, 0], expr: 'stern' });
-    drawWitness(ctx, t, { face: turned ? 1 : -1, expr: t < 38.4 ? 'happy' : (t < 39.6 ? 'neutral' : 'tired'), look: turned ? [6, 2] : [2, 3], sweat: t > 39.6 ? t : 0 });
+    drawWitness(ctx, t, { face: turned ? 1 : -1, expr: t < 38.8 ? 'happy' : (t < 40.0 ? 'neutral' : 'tired'), look: turned ? [6, 2] : [2, 3], sweat: t > 40.0 ? t : 0 });
     policeCar(ctx, -120, 2060, t);
     const ch = toScreen(cam, COP_X, headY);
-    bubble(ctx, 560, 470, 1000, 230, [ch[0] + 30, ch[1] - 140], TT.c2, popIn(t, 35.3, 38.5, .3, .2));
+    bubble(ctx, 560, 470, 1000, 230, [ch[0] + 30, ch[1] - 140], TT.c2, popIn(t, 35.3, 38.85, .3, .2));
   } },
   // 6 — the shutter, and the moral
-  { a: 45.6, b: 51, draw(t) {
-    const p = easeIO(seg(t, 45.6, 50));
+  { a: 46.6, b: 52, draw(t) {
+    const p = easeIO(seg(t, 46.6, 51.5));
     setCam(ctx, 760, lerp(1260, 1290, p), lerp(1.2, 1.32, p)); bg(ctx);
     ctx.fillStyle = 'rgba(255,230,160,.8)'; ctx.fillRect(SHUT.x0, SHUT.bot - 2, SHUT.x1 - SHUT.x0, 10);
-    title(ctx, TT.end[0], 540, 1600, 76, popIn(t, 45.9, 52, .45, .1), { maxW: 1000 });
-    title(ctx, TT.end[1], 540, 1700, 76, popIn(t, 46.6, 52, .45, .1), { maxW: 1000, fill: '#ffd23f' });
+    title(ctx, TT.end[0], 540, 1600, 76, popIn(t, 46.9, 53, .45, .1), { maxW: 1000 });
+    title(ctx, TT.end[1], 540, 1700, 76, popIn(t, 48.3, 53, .45, .1), { maxW: 1000, fill: '#ffd23f' });
   } },
 ];
 
@@ -783,14 +783,14 @@ function renderFrame(t) {
   const sc = SCENES.find(s => t >= s.a && t < s.b) || SCENES[SCENES.length - 1];
   ctx.save(); sc.draw(t); ctx.restore();
   const pov = t >= 31.5 && t < 35;
-  if (!pov && t < 45.6) sirenGlow(ctx, t, .8);
+  if (!pov && t < 46.6) sirenGlow(ctx, t, .8);
   captions(ctx, t);
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = 'rgba(90,110,190,.16)'; ctx.fillRect(0, 0, W, H);
   ctx.globalCompositeOperation = 'source-over';
   ctx.drawImage(VIGN, 0, 0);
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[Math.floor(t * 24) % 4], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
-  for (const c of [7, 18, 27, 31.5, 35, 45.6]) { const d = Math.abs(t - c); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .45})`; ctx.fillRect(0, 0, W, H); } }
+  for (const c of [7, 18, 27, 31.5, 35, 46.6]) { const d = Math.abs(t - c); if (d < .12) { ctx.fillStyle = `rgba(255,248,235,${(1 - d / .12) * .45})`; ctx.fillRect(0, 0, W, H); } }
   const fin = 1 - seg(t, 0, .5), fout = seg(t, DURATION - .8, DURATION);
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }

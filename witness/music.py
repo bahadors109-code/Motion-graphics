@@ -12,13 +12,13 @@ import wave
 import numpy as np
 
 SR = 44100
-DURATION = 50.0
+DURATION = 51.5
 N = int(SR * DURATION)
 rng = np.random.default_rng(11)
 STOP, RESUME = 21.85, 27.0       # pen stops -> sparse until the questions start
 POV0, POV1 = 31.5, 35.0
-REVEAL = 39.3
-END_CHORD = 47.6
+REVEAL = 39.4
+END_CHORD = 49.9
 
 
 def midi(m):
@@ -219,8 +219,8 @@ events = [
     (27.2, pop(), .3, 0), (29.6, pop(), .3, 0),
     (31.5, whoosh(.6), .25, 0),
     (35.3, pop(), .3, 0),
-    (38.6, gulp(), .5, .2),
-    (45.6, whoosh(.5), .22, 0), (45.9, pop(), .4, 0), (46.6, pop(), .35, 0),
+    (38.95, gulp(), .5, .2),
+    (46.6, whoosh(.5), .22, 0), (46.9, pop(), .4, 0), (48.3, pop(), .35, 0),
 ]
 for at, sig, g, p in events:
     sfx.add(sig, at, g, p)
