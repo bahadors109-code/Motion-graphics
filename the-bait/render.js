@@ -70,8 +70,8 @@ function mux(duration = 46.5) {
     const parts = NARRATION.segs.map(([a, b, o, pitch], k) =>
       `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
     filter = [...parts,
-      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},asplit=2[voice][key]`,
-      `[0:a]volume=0.45[mus]`, `[mus][key]sidechaincompress=threshold=0.05:ratio=3:attack=30:release=450[duck]`, `[1:a]volume=0.45[fx]`,
+      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.08:ratio=3:attack=5:release=120:makeup=1.6,volume=1.25,asplit=2[voice][key]`,
+      `[0:a]volume=0.32[mus]`, `[mus][key]sidechaincompress=threshold=0.04:ratio=4:attack=25:release=500[duck]`, `[1:a]volume=0.35[fx]`,
       `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-15:TP=-1.5:LRA=11,aresample=44100[a]`].join(';');
   } else {
     filter = `[0:a]volume=0.6[mus];[1:a]volume=0.5[fx];[mus][fx]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[a]`;
