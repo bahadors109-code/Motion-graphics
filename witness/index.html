@@ -795,6 +795,45 @@ function renderFrame(t) {
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }
 
+const COVER_CFG = { t: 26.5, title: ['THE WITNESS WHO', 'SAW TOO MUCH'], size: [110, 130], hook: ['HOW DID HE SEE THAT?', 640, 1400], target: [880, 1195], arrowEnd: [0, 10], glow: 300, tagline: 'A LITTLE TOO GOOD TO BE TRUE' };
+// ------------------------------------------------------------ Reels cover (?cover) — same look as the "Missing Nail" cover
+function coverArrow(g, x0, y0, x1, y1) {
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.lineCap = 'round';
+  for (const [w, c] of [[18, '#141418'], [10, '#ffd23f']]) {
+    g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1);
+    const a = Math.atan2(y1 - y0, x1 - x0);
+    g.moveTo(x1, y1); g.lineTo(x1 - Math.cos(a - .5) * 34, y1 - Math.sin(a - .5) * 34); g.moveTo(x1, y1); g.lineTo(x1 - Math.cos(a + .5) * 34, y1 - Math.sin(a + .5) * 34); g.stroke();
+  }
+  g.restore();
+}
+function renderCover() {
+  const cfg = COVER_CFG, full = { s: 1, a: 1 };
+  const keep = { title, tag, bubble, captions, calendar: typeof calendar === 'function' ? calendar : null };
+  title = tag = bubble = captions = () => {}; if (keep.calendar) calendar = () => {};
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const sc = SCENES.find(s => cfg.t >= s.a && cfg.t < s.b);
+  ctx.save(); sc.draw(cfg.t); ctx.restore();
+  title = keep.title; tag = keep.tag; bubble = keep.bubble; captions = keep.captions; if (keep.calendar) calendar = keep.calendar;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = 'none'; ctx.globalAlpha = 1;
+  // darken for legibility, then light the key detail
+  ctx.fillStyle = 'rgba(8,10,20,.3)'; ctx.fillRect(0, 0, W, H);
+  let gr = ctx.createLinearGradient(0, 0, 0, 760); gr.addColorStop(0, 'rgba(5,6,12,.65)'); gr.addColorStop(1, 'rgba(5,6,12,0)');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, 760);
+  const [tx, ty] = cfg.target;
+  ctx.globalCompositeOperation = 'screen';
+  gr = ctx.createRadialGradient(tx, ty, 10, tx, ty, cfg.glow || 330); gr.addColorStop(0, 'rgba(255,240,200,.55)'); gr.addColorStop(1, 'rgba(255,240,200,0)');
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(tx, ty, cfg.glow || 330, 0, 7); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  // hook + arrow, title, tagline
+  coverArrow(ctx, cfg.hook[1], cfg.hook[2] + 50, tx + (cfg.arrowEnd || [0, 0])[0], ty + (cfg.arrowEnd || [0, 0])[1]);
+  tag(ctx, cfg.hook[0], cfg.hook[1], cfg.hook[2], cfg.hookSize || 52, full, '#ffd23f', OUT, -.04);
+  title(ctx, cfg.title[0], 540, 345, cfg.size[0], full, { maxW: 1020 });
+  title(ctx, cfg.title[1], 540, 345 + cfg.size[0] * .55 + cfg.size[1] * .55, cfg.size[1], full, { maxW: 1020, fill: '#ffd23f' });
+  tag(ctx, cfg.tagline, 540, 1560, 46, full, '#fbf8f1', OUT, .02);
+  ctx.drawImage(VIGN, 0, 0);
+  ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[0], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+}
+
 async function init() {
   await document.fonts.load('40px Lucky'); await document.fonts.load('900 40px Mont'); await document.fonts.load('800 40px Mont');
   BG = paintStreet();
@@ -802,7 +841,9 @@ async function init() {
   PANEL = mk(960, 600);
   window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
   const q = new URLSearchParams(location.search);
-  if (q.has('t')) renderFrame(parseFloat(q.get('t')));
+  window.renderCover = renderCover;
+  if (q.has('cover')) renderCover();
+  else if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
 }
 init();
