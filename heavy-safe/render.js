@@ -18,7 +18,14 @@ fs.mkdirSync(BUILD, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 // Voice-over phrases [audioStart, audioEnd, offsetIntoVideo, pitch?] — filled in once the ElevenLabs file arrives.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 5.9, .5],                     // They had heard… / So they went straight for the safe.
+  [5.9, 9.3, 2.22],                 // No matter what they tried, it wouldn't open.
+  [9.3, 12.9, 1.91],                // In the end, they decided to take the whole safe.
+  [12.9, 16.7, 5.94, .82],          // thief: All this weight… it must be full of gold!
+  [16.7, 25.55, 16.6],              // The merchant had been expecting them…
+  [25.55, 99, 17.49],               // The heaviest thing wasn't the most valuable.
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
@@ -63,9 +70,9 @@ function mux(duration = 47) {
     const parts = NARRATION.segs.map(([a, b, o, pitch], k) =>
       `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
     filter = [...parts,
-      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.06:ratio=4:attack=5:release=120:makeup=2,equalizer=f=3000:t=q:w=1:g=3,volume=1.8,asplit=2[voice][key]`,
-      `[0:a]volume=0.15[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.2[fx]`,
-      `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-12:TP=-1:LRA=9,aresample=44100[a]`].join(';');
+      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.06:ratio=4:attack=5:release=120:makeup=2,equalizer=f=3000:t=q:w=1:g=3,volume=2.1,asplit=2[voice][key]`,
+      `[0:a]volume=0.12[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.17[fx]`,
+      `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-11:TP=-1:LRA=8,aresample=44100[a]`].join(';');
   } else {
     filter = `[0:a]volume=0.6[mus];[1:a]volume=0.5[fx];[mus][fx]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[a]`;
   }
