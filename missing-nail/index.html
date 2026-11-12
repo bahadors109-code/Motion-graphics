@@ -832,6 +832,48 @@ function renderFrame(t) {
   if (fin > 0 || fout > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fin, fout)})`; ctx.fillRect(0, 0, W, H); }
 }
 
+
+// ------------------------------------------------------------ Reels cover (?cover)
+const COVER = { title: ['THE MISSING', 'NAIL'], hook: "WHERE'S THE NAIL?", tag: 'A PERFECT CRIME… ALMOST' };
+function renderCover() {
+  const t = 27.5;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const cam = [545, 800, 1.15];
+  setCam(ctx, cam[0], cam[1], cam[2]); ctx.drawImage(BG, WX0, WY0, WW, WH);
+  brightRect(ctx, { residue: 1, shine: .3 });
+  owner(ctx, t, { x: 170, expr: 'tired', sweat: 1.3, look: [6, -4] });
+  const fl = [800, 1240];
+  detective(ctx, t, { x: 910, look: [-2, -9], expr: 'suspicious', arms: { front: { t: fl } } });
+  const target = [(RECT.x0 + RECT.x1) / 2, RECT.y0 - 24];
+  flashlight(ctx, fl[0] - 10, fl[1] - 6, Math.atan2(target[1] - fl[1], target[0] - fl[0]) + Math.PI);
+  // darkness + beam on the spot where a nail should be
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = 'rgba(8,10,20,.5)'; ctx.fillRect(0, 0, W, H);
+  const [bx, by] = toScreen(cam, target[0], target[1] + 60), [fx_, fy_] = toScreen(cam, fl[0] - 50, fl[1] - 20);
+  ctx.globalCompositeOperation = 'screen';
+  const a = Math.atan2(by - fy_, bx - fx_), nx = -Math.sin(a), ny = Math.cos(a);
+  const cone = ctx.createLinearGradient(fx_, fy_, bx, by); cone.addColorStop(0, 'rgba(255,240,190,.4)'); cone.addColorStop(1, 'rgba(255,240,190,.1)');
+  ctx.fillStyle = cone; ctx.beginPath(); ctx.moveTo(fx_ + nx * 14, fy_ + ny * 14); ctx.lineTo(bx + nx * 280, by + ny * 280); ctx.lineTo(bx - nx * 280, by - ny * 280); ctx.lineTo(fx_ - nx * 14, fy_ - ny * 14); ctx.fill();
+  const spot = ctx.createRadialGradient(bx, by, 10, bx, by, 360); spot.addColorStop(0, 'rgba(255,245,210,.8)'); spot.addColorStop(1, 'rgba(255,245,210,0)');
+  ctx.fillStyle = spot; ctx.beginPath(); ctx.arc(bx, by, 360, 0, 7); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  // the missing nail: red "no" sign
+  const [nx_, ny_] = toScreen(cam, target[0], target[1]);
+  ctx.lineWidth = 12; ctx.strokeStyle = '#e8322a'; ctx.beginPath(); ctx.arc(nx_, ny_, 54, 0, 7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(nx_ - 38, ny_ - 38); ctx.lineTo(nx_ + 38, ny_ + 38); ctx.stroke();
+  // hook + arrow
+  const full = { s: 1, a: 1 };
+  tag(ctx, COVER.hook, 760, ny_ - 120, 52, full, '#ffd23f', OUT, -.04);
+  arrowTo(ctx, 700, ny_ - 80, nx_ + 52, ny_ - 22, full);
+  // title (inside the 3:4 / 4:5 grid crop)
+  title(ctx, COVER.title[0], 540, 345, 150, full);
+  title(ctx, COVER.title[1], 540, 500, 190, full, { fill: '#ffd23f' });
+  tag(ctx, COVER.tag, 540, 1560, 50, full, '#fbf8f1', OUT, .02);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(VIGN, 0, 0);
+  ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[0], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+}
+
 async function init() {
   await document.fonts.load('40px Lucky'); await document.fonts.load('900 40px Mont'); await document.fonts.load('800 40px Mont');
   ART = paintArt(432, 312, 11, { sky: ['#4a3f7a', '#c86a6a', '#f2b36b', '#f7d79a'], hills: ['#7a8f6a', '#4f6e4a', '#2f4a36'], river: '#9fd0e8' });
@@ -840,7 +882,9 @@ async function init() {
   paintFx();
   window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
   const q = new URLSearchParams(location.search);
-  if (q.has('t')) renderFrame(parseFloat(q.get('t')));
+  window.renderCover = renderCover;
+  if (q.has('cover')) renderCover();
+  else if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
 }
 init();
