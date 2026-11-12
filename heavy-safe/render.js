@@ -71,7 +71,7 @@ function mux(duration = 47) {
       `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
     filter = [...parts,
       `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.06:ratio=4:attack=5:release=120:makeup=2,equalizer=f=3000:t=q:w=1:g=3,volume=2.1,asplit=2[voice][key]`,
-      `[0:a]volume=0.12[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.17[fx]`,
+      `[0:a]volume=0.22[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.32[fx]`,
       `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-11:TP=-1:LRA=8,aresample=44100[a]`].join(';');
   } else {
     filter = `[0:a]volume=0.6[mus];[1:a]volume=0.5[fx];[mus][fx]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[a]`;
