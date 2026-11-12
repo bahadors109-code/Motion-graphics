@@ -18,7 +18,16 @@ fs.mkdirSync(BUILD, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 // Voice-over phrases [audioStart, audioEnd, offsetIntoVideo, pitch?] — filled in once the ElevenLabs file arrives.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 7.45, .5],                    // The gallery owner said…
+  [7.45, 9.75, .33, .82],           // owner: They came in through here last night.
+  [9.75, 12.05, .58, .82],          // owner: They only took that painting.
+  [12.05, 13.95, 5.47, .78],        // detective: When did you paint this wall?
+  [13.95, 16.35, 5.97, .82],        // owner: Yesterday evening. Myself.
+  [16.35, 21.75, 10.52],            // But that rectangle wasn't…
+  [21.75, 30.3, 11.23],             // He had hidden the painting himself…
+  [30.3, 99, 12.83],                // A mark for the painting… but none for the nail.
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });
@@ -63,9 +72,9 @@ function mux(duration = 47.5) {
     const parts = NARRATION.segs.map(([a, b, o, pitch], k) =>
       `[3:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,afade=t=in:d=0.02,${pitch ? `asetrate=${Math.round(44100 * pitch)},aresample=44100,atempo=${(1 / pitch).toFixed(4)},` : ''}adelay=${Math.round((a + o) * 1000)}|${Math.round((a + o) * 1000)}[n${k}]`);
     filter = [...parts,
-      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.06:ratio=4:attack=5:release=120:makeup=2,volume=1.5,asplit=2[voice][key]`,
-      `[0:a]volume=0.2[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.25[fx]`,
-      `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-13:TP=-1:LRA=9,aresample=44100[a]`].join(';');
+      `${NARRATION.segs.map((_, k) => `[n${k}]`).join('')}amix=inputs=${NARRATION.segs.length}:normalize=0:duration=longest,aformat=sample_rates=44100:channel_layouts=stereo,apad=whole_dur=${duration},acompressor=threshold=0.06:ratio=4:attack=5:release=120:makeup=2,equalizer=f=3000:t=q:w=1:g=3,volume=1.8,asplit=2[voice][key]`,
+      `[0:a]volume=0.15[mus]`, `[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=500[duck]`, `[1:a]volume=0.2[fx]`,
+      `[voice][duck][fx]amix=inputs=3:normalize=0:duration=first,loudnorm=I=-12:TP=-1:LRA=9,aresample=44100[a]`].join(';');
   } else {
     filter = `[0:a]volume=0.6[mus];[1:a]volume=0.5[fx];[mus][fx]amix=inputs=2:normalize=0:duration=first,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[a]`;
   }

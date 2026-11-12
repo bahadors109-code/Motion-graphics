@@ -28,17 +28,17 @@ const TT = {
   det1: ['When did you', 'paint this wall?'], owner3: ['Yesterday evening.', 'Myself.'],
   tags: ['NO NAIL', 'NO HOOK', 'TAPE MARKS'], flash: 'FLASHBACK',
   end: ['A MARK FOR THE PAINTING…', 'BUT NONE FOR THE NAIL.'],
-  // narration captions [start, text]; *word* = highlighted. Draft – retimed once the English voice-over arrives.
+  // narration captions [start, text]; *word* = highlighted — timed to the ElevenLabs voice-over
   captions: [
     [0.5, 'The gallery owner said his most valuable painting had been *stolen…*'],
-    [3.4, 'an old piece he had insured for a *fortune.*'],
-    [27.6, "But that rectangle wasn't the mark of an *old* painting…"],
-    [30.0, 'it had just been *made.*'],
+    [5.03, 'an old piece he had insured for a *fortune.*'],
+    [27.2, "But that rectangle wasn't the mark of an *old* painting…"],
+    [30.72, 'it had just been *made.*'],
     [33.3, 'He had hidden the painting himself to collect the *insurance…*'],
-    [37.6, 'he just forgot that an imaginary painting would still need something to *hang on!*'],
+    [36.95, 'he just forgot that an imaginary painting would still need something to *hang on!*'],
   ],
 };
-const CAP_END = [3.2, 6.0, 29.8, 31.8, 37.3, 42.6];
+const CAP_END = [4.46, 7.66, 30.2, 31.99, 36.39, 41.28];
 
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -812,7 +812,7 @@ const SCENES = [
     ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(230,50,50,.9)'; const r = 40 * easeBack(seg(t, 43.3, 43.7));
     if (r > 0) { ctx.beginPath(); ctx.arc(top[0], top[1], r, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.moveTo(top[0] - r * .7, top[1] - r * .7); ctx.lineTo(top[0] + r * .7, top[1] + r * .7); ctx.stroke(); }
     title(ctx, TT.end[0], 540, 1250, 74, popIn(t, 43.4, 49, .45, .1), { maxW: 1000 });
-    title(ctx, TT.end[1], 540, 1355, 74, popIn(t, 44.6, 49, .45, .1), { maxW: 1000, fill: '#ffd23f' });
+    title(ctx, TT.end[1], 540, 1355, 74, popIn(t, 45.15, 49, .45, .1), { maxW: 1000, fill: '#ffd23f' });
   } },
 ];
 
