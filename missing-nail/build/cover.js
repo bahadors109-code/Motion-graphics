@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs'); const path
   await p.goto('file://' + path.join(root, 'index.html') + '?static');
   await p.waitForFunction(() => window.ready === true, null, { timeout: 120000 });
   const style = process.argv[2] || '1';
-  const png = await p.evaluate(s => { (s === '2' ? window.renderCover2 : window.renderCover)(); return document.getElementById('c').toDataURL('image/png').split(',')[1]; }, style);
-  fs.writeFileSync(path.join(root, '..', 'output', style === '2' ? 'missing-nail-cover-2.png' : 'missing-nail-cover.png'), Buffer.from(png, 'base64'));
+  const png = await p.evaluate(s => { ({ '2': window.renderCover2, '3': window.renderCover3 }[s] || window.renderCover)(); return document.getElementById('c').toDataURL('image/png').split(',')[1]; }, style);
+  fs.writeFileSync(path.join(root, '..', 'output', style === '1' ? 'missing-nail-cover.png' : `missing-nail-cover-${style}.png`), Buffer.from(png, 'base64'));
   await b.close();
 })();

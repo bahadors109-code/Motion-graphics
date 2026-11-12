@@ -959,6 +959,55 @@ function renderCover2() {
   g.globalCompositeOperation = 'overlay'; g.drawImage(GRAIN[1], 0, 0, W, H); g.globalCompositeOperation = 'source-over';
 }
 
+
+// ------------------------------------------------------------ Reels cover, style 3: minimal pop poster (?cover=3)
+function nailIcon(g, x, y, s) {
+  g.save(); g.translate(x, y); g.scale(s, s); g.rotate(.18);
+  rr(g, -70, -18, 140, 36, 10); fillOut(g, '#9aa0aa', 7);                      // head
+  g.beginPath(); g.moveTo(-18, 18); g.lineTo(18, 18); g.lineTo(6, 230); g.lineTo(0, 262); g.lineTo(-6, 230); g.closePath(); fillOut(g, '#b8bec8', 7);
+  g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 5; g.beginPath(); g.moveTo(-6, 30); g.lineTo(-2, 220); g.stroke();
+  g.restore();
+}
+function renderCover3() {
+  const g = ctx, Y = '#ffd23f', RED = '#d6332b', INK = '#141418';
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = Y; g.fillRect(0, 0, W, H);
+  // halftone dots
+  for (let y = 0; y < H; y += 26) for (let x = (y / 26 % 2) * 13; x < W; x += 26) {
+    const d = Math.hypot(x - 540, y - 1000) / 1100, r = 2 + 6 * clamp(d - .25, 0, 1);
+    g.fillStyle = 'rgba(214,140,20,.35)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  }
+  // title
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '124px Lucky'; g.fillStyle = INK; g.fillText('THE MISSING', 540, 340);
+  g.save(); g.translate(540, 545); g.rotate(-.04);
+  g.font = '300px Lucky'; g.lineJoin = 'round'; g.lineWidth = 28; g.strokeStyle = INK; g.strokeText('NAIL', 10, 14);
+  g.fillStyle = RED; g.fillText('NAIL', 0, 0); g.lineWidth = 10; g.strokeStyle = INK; g.strokeText('NAIL', 0, 0);
+  g.restore();
+  // the empty frame: dashed outline + tape on the corners
+  const fx0 = 210, fx1 = 870, fy0 = 860, fy1 = 1330;
+  g.fillStyle = 'rgba(255,250,235,.55)'; g.fillRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+  g.setLineDash([46, 26]); g.lineWidth = 14; g.strokeStyle = INK; g.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0); g.setLineDash([]);
+  for (const [x, y, a] of [[fx0, fy0, -.7], [fx1, fy0, .7], [fx0, fy1, .7], [fx1, fy1, -.7]]) {
+    g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = 'rgba(80,150,220,.9)'; g.fillRect(-60, -20, 120, 40); g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 3; g.strokeRect(-60, -20, 120, 40); g.restore();
+  }
+  // big question mark inside the frame
+  g.font = '320px Lucky'; g.fillStyle = 'rgba(20,20,24,.12)'; g.fillText('?', 540, 1110);
+  // the nail above the frame, crossed out
+  nailIcon(g, 540, 730, .55);
+  g.lineWidth = 16; g.strokeStyle = RED; g.beginPath(); g.arc(548, 780, 110, 0, 7); g.stroke();
+  g.beginPath(); g.moveTo(548 - 78, 780 - 78); g.lineTo(548 + 78, 780 + 78); g.stroke();
+  // tagline pill
+  g.font = '900 52px Mont'; const tw = g.measureText("WHO NEEDS A NAIL?").width + 80;
+  rr(g, 540 - tw / 2, 1420, tw, 100, 50); g.fillStyle = INK; g.fill();
+  g.fillStyle = Y; g.fillText('WHO NEEDS A NAIL?', 540, 1473);
+  g.font = '800 40px Mont'; g.fillStyle = INK; g.fillText('A 45-SECOND MYSTERY', 540, 1590);
+  // detective peeking from the bottom edge
+  const D = { kind: 'detective', x: 880, y: 2700, s: 1.25, face: -1, expr: 'suspicious', look: [-6, -8] };
+  drawPerson(g, D);
+  g.globalCompositeOperation = 'overlay'; g.drawImage(GRAIN[2], 0, 0, W, H); g.globalCompositeOperation = 'source-over';
+}
+
 async function init() {
   await document.fonts.load('40px Lucky'); await document.fonts.load('900 40px Mont'); await document.fonts.load('800 40px Mont');
   ART = paintArt(432, 312, 11, { sky: ['#4a3f7a', '#c86a6a', '#f2b36b', '#f7d79a'], hills: ['#7a8f6a', '#4f6e4a', '#2f4a36'], river: '#9fd0e8' });
@@ -969,7 +1018,8 @@ async function init() {
   const q = new URLSearchParams(location.search);
   window.renderCover = renderCover;
   window.renderCover2 = renderCover2;
-  if (q.get('cover') === '2') renderCover2(); else if (q.has('cover')) renderCover();
+  window.renderCover3 = renderCover3;
+  if (q.get('cover') === '3') renderCover3(); else if (q.get('cover') === '2') renderCover2(); else if (q.has('cover')) renderCover();
   else if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
 }
