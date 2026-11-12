@@ -874,6 +874,91 @@ function renderCover() {
   ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(GRAIN[0], 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
 }
 
+
+// ------------------------------------------------------------ Reels cover, style 2: case file on a cork board (?cover=2)
+function renderCover2() {
+  const g = ctx, rnd = mulberry(404);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  // cork board
+  let gr = g.createRadialGradient(540, 900, 200, 540, 960, 1200); gr.addColorStop(0, '#b98a58'); gr.addColorStop(1, '#6e4a2a');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 26000; i++) { g.fillStyle = rnd() < .5 ? `rgba(60,35,15,${rnd() * .35})` : `rgba(240,200,150,${rnd() * .25})`; g.fillRect(rnd() * W, rnd() * H, 2 + rnd() * 3, 2 + rnd() * 3); }
+  // the photo content: the empty rectangle under the flashlight
+  const ph = mk(640, 560), pg = ph.getContext('2d');
+  const cam = [530, 830, .95];
+  pg.setTransform(cam[2], 0, 0, cam[2], 320 - cam[0] * cam[2], 280 - cam[1] * cam[2]);
+  pg.drawImage(BG, WX0, WY0, WW, WH); brightRect(pg, { residue: 1, shine: .3 });
+  pg.setTransform(1, 0, 0, 1, 0, 0);
+  pg.fillStyle = 'rgba(8,10,20,.28)'; pg.fillRect(0, 0, 640, 560);
+  const nail = [320 + ((RECT.x0 + RECT.x1) / 2 - cam[0]) * cam[2], 280 + (RECT.y0 - 24 - cam[1]) * cam[2]];
+  pg.globalCompositeOperation = 'screen';
+  const sp = pg.createRadialGradient(nail[0], nail[1] + 60, 10, nail[0], nail[1] + 60, 300); sp.addColorStop(0, 'rgba(255,245,210,.8)'); sp.addColorStop(1, 'rgba(255,245,210,0)');
+  pg.fillStyle = sp; pg.fillRect(0, 0, 640, 560); pg.globalCompositeOperation = 'source-over';
+  // manila folder
+  g.save(); g.translate(540, 1000); g.rotate(-.025);
+  g.shadowColor = 'rgba(0,0,0,.5)'; g.shadowBlur = 50; g.shadowOffsetY = 20;
+  rr(g, -440, -620, 300, 110, 18); g.fillStyle = '#d9b46e'; g.fill();
+  rr(g, -460, -540, 920, 1180, 16); g.fillStyle = '#e8c98a'; g.fill(); g.shadowColor = 'transparent';
+  g.fillStyle = '#3a2a18'; g.font = '900 44px Mont'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('CASE FILE', -290, -572);
+  g.strokeStyle = 'rgba(120,80,30,.25)'; g.lineWidth = 3; for (let y = 380; y < 600; y += 46) { g.beginPath(); g.moveTo(-400, y); g.lineTo(400, y); g.stroke(); }
+  g.fillStyle = '#4a3420'; g.font = '800 34px Mont'; g.textAlign = 'left';
+  g.fillText('CASE No. 047', -400, 418); g.fillText('ITEM: 1 PAINTING (STOLEN?)', -400, 462);
+  g.restore();
+  // polaroid
+  g.save(); g.translate(500, 900); g.rotate(-.06);
+  g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 30; g.shadowOffsetY = 12;
+  g.fillStyle = '#fbfaf5'; g.fillRect(-350, -330, 700, 760); g.shadowColor = 'transparent';
+  g.drawImage(ph, -320, -300, 640, 560);
+  g.fillStyle = '#2a2a30'; g.font = '40px Lucky'; g.textAlign = 'center'; g.fillText('THE WALL', -150, 340);
+  g.restore();
+  // magnifying glass over the nail spot (zoomed)
+  const nailScreen = (() => { const a = -.06, x = -320 + nail[0], y = -300 + nail[1]; return [500 + x * Math.cos(a) - y * Math.sin(a), 900 + x * Math.sin(a) + y * Math.cos(a)]; })();
+  const mx = nailScreen[0] + 20, my = nailScreen[1] + 10, R0 = 120;
+  g.save(); g.beginPath(); g.arc(mx, my, R0, 0, 7); g.clip();
+  g.translate(mx, my); g.scale(1.9, 1.9); g.translate(-mx, -my);
+  g.save(); g.translate(500, 900); g.rotate(-.06); g.drawImage(ph, -320, -300, 640, 560); g.restore();
+  g.restore();
+  g.lineWidth = 10; g.strokeStyle = '#e8322a'; g.beginPath(); g.arc(mx, my, 50, 0, 7); g.stroke(); g.beginPath(); g.moveTo(mx - 35, my - 35); g.lineTo(mx + 35, my + 35); g.stroke();
+  g.save(); g.translate(mx, my); g.rotate(.7);
+  limb(g, [[R0 + 10, 0], [R0 + 190, 0]], 30, '#5a3a22');
+  g.beginPath(); g.arc(0, 0, R0, 0, 7); g.lineWidth = 26; g.strokeStyle = OUT; g.stroke(); g.lineWidth = 16; g.strokeStyle = '#3b3d44'; g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 6; g.beginPath(); g.arc(0, 0, R0 - 26, Math.PI * 1.1, Math.PI * 1.45); g.stroke();
+  g.restore();
+  // sticky note + red string
+  g.save(); g.translate(830, 1290); g.rotate(.08);
+  g.shadowColor = 'rgba(0,0,0,.4)'; g.shadowBlur = 20; g.shadowOffsetY = 8;
+  g.fillStyle = '#ffe066'; g.fillRect(-170, -150, 340, 300); g.shadowColor = 'transparent';
+  g.fillStyle = '#1b1b1f'; g.font = '62px Lucky'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText("WHERE'S", 0, -60); g.fillText('THE NAIL?', 0, 20);
+  g.strokeStyle = '#d23b3b'; g.lineWidth = 6; g.beginPath(); g.moveTo(-110, 80); g.quadraticCurveTo(0, 110, 120, 76); g.stroke();
+  g.restore();
+  g.strokeStyle = '#c4242b'; g.lineWidth = 6; g.beginPath(); g.moveTo(mx + 40, my - 80); g.quadraticCurveTo(920, my - 40, 830, 1150); g.stroke();
+  for (const [x, y] of [[mx + 40, my - 80], [830, 1150], [180, 590], [820, 590]]) { g.beginPath(); g.arc(x, y, 18, 0, 7); fillOut(g, '#d23b3b', 4); g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.arc(x - 6, y - 6, 5, 0, 7); g.fill(); }
+  // stamp
+  g.save(); g.translate(320, 1570); g.rotate(-.1); g.globalAlpha = .9;
+  g.strokeStyle = '#c4242b'; g.lineWidth = 10; rr(g, -210, -62, 420, 124, 14); g.stroke(); g.lineWidth = 4; rr(g, -196, -48, 392, 96, 10); g.stroke();
+  g.fillStyle = '#c4242b'; g.font = '66px Lucky'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('UNSOLVED?', 0, 6);
+  g.restore();
+  // detective peeking in from the bottom-right
+  g.save(); g.translate(0, 0);
+  const D = { kind: 'detective', x: 1000, y: 2330, s: 1.15, face: -1, expr: 'suspicious', look: [-5, -6] };
+  drawPerson(g, D); g.restore();
+  // title strip (inside the grid crop)
+  g.save(); g.translate(540, 360); g.rotate(-.03);
+  g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 24; g.shadowOffsetY = 10;
+  g.fillStyle = '#16161a'; g.beginPath(); g.moveTo(-500, -90);
+  for (let x = -500; x <= 500; x += 25) g.lineTo(x, -90 + (hash(x) - .5) * 14);
+  for (let x = 500; x >= -500; x -= 25) g.lineTo(x, 90 + (hash(x + 99) - .5) * 14);
+  g.fill(); g.shadowColor = 'transparent';
+  g.font = '112px Lucky'; g.textAlign = 'left'; g.textBaseline = 'middle';
+  const w1 = g.measureText('THE MISSING ').width, w2 = g.measureText('NAIL').width, x0 = -(w1 + w2) / 2;
+  g.fillStyle = '#fbf8ee'; g.fillText('THE MISSING ', x0, 4); g.fillStyle = '#ffd23f'; g.fillText('NAIL', x0 + w1, 4);
+  g.restore();
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(VIGN, 0, 0);
+  g.globalCompositeOperation = 'overlay'; g.drawImage(GRAIN[1], 0, 0, W, H); g.globalCompositeOperation = 'source-over';
+}
+
 async function init() {
   await document.fonts.load('40px Lucky'); await document.fonts.load('900 40px Mont'); await document.fonts.load('800 40px Mont');
   ART = paintArt(432, 312, 11, { sky: ['#4a3f7a', '#c86a6a', '#f2b36b', '#f7d79a'], hills: ['#7a8f6a', '#4f6e4a', '#2f4a36'], river: '#9fd0e8' });
@@ -883,7 +968,8 @@ async function init() {
   window.renderFrame = renderFrame; window.DURATION = DURATION; window.ready = true;
   const q = new URLSearchParams(location.search);
   window.renderCover = renderCover;
-  if (q.has('cover')) renderCover();
+  window.renderCover2 = renderCover2;
+  if (q.get('cover') === '2') renderCover2(); else if (q.has('cover')) renderCover();
   else if (q.has('t')) renderFrame(parseFloat(q.get('t')));
   else if (!q.has('static')) { const t0 = performance.now(); const loop = () => { renderFrame(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); }; loop(); }
 }
