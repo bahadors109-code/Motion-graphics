@@ -18,7 +18,14 @@ fs.mkdirSync(BUILD, { recursive: true });
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 
 // Voice-over phrases [audioStart, audioEnd, offsetIntoVideo, pitch?] — filled in once the ElevenLabs file arrives.
-const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [[0, 99, 0.5]] };
+const NARRATION = { file: path.join(ROOT, 'assets', 'narration-en.mp3'), segs: [
+  [0, 5.1, .5],                     // Out of all the passengers…
+  [5.1, 7.7, .9],                   // A few seconds were all he needed.
+  [7.7, 11.0, 1.63],                // He grabbed the suitcase… (on the grab)
+  [11.0, 14.9, 4.55],               // He was expecting cash. Maybe even jewelry… (with the thought bubble)
+  [14.9, 23.0, 17.93],              // The police were hunting someone…
+  [23.0, 99, 19.2],                 // This time, the bait was waiting for the thief.
+] };
 
 async function page() {
   const browser = await chromium.launch({ args: ['--allow-file-access-from-files'] });

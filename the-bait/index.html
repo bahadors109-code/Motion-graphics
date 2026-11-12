@@ -27,17 +27,17 @@ const TT = {
   board: 'DEPARTURES', rows: [['08:15', 'NORTHFIELD', '4'], ['08:40', 'CLAYMORE', '2'], ['09:05', 'RIVERTON', '7'], ['09:30', 'EASTGATE', '1'], ['09:55', 'LONGWATER', '3']],
   sign: ['SMILE FOR', 'THE CAMERA :)'], rec: 'REC', fake: 'FAKE!',
   end: ['THIS TIME, THE BAIT', 'WAS WAITING FOR THE THIEF.'],
-  // narration captions [start, text]; *word* = highlighted. Draft – retimed once the English voice-over arrives.
+  // narration captions [start, text]; *word* = highlighted — timed to the ElevenLabs voice-over
   captions: [
     [0.5, 'Out of all the passengers, the thief picked the old man who looked the *richest.*'],
     [6.4, 'A few seconds were all he needed.'],
-    [8.9, 'He grabbed the *suitcase* and calmly walked away.'],
-    [15.6, 'He was expecting *cash.* Maybe even *jewelry…*'],
+    [9.6, 'He grabbed the *suitcase* and calmly walked away.'],
+    [15.9, 'He was expecting *cash.* Maybe even *jewelry…*'],
     [33.2, 'The police were hunting someone who stole passengers’ suitcases…'],
-    [37.3, 'and this time, they had brought him the *suitcase* themselves.'],
+    [37.34, 'and this time, they had brought him the *suitcase* themselves.'],
   ],
 };
-const CAP_END = [5.6, 8.6, 12.6, 19.2, 37.0, 41.0];
+const CAP_END = [5.33, 8.32, 12.26, 19.06, 36.85, 40.53];
 
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -377,7 +377,7 @@ function captions(g, t) {
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
   g.font = LANG === 'fa' ? `900 ${size}px Vazir` : `900 ${size}px Mont`;
   g.textBaseline = 'middle'; g.direction = DIR; g.textAlign = 'left'; g.lineJoin = 'round';
-  const lines = wrap(g, text, 900), lh = size * 1.25;
+  const lines = wrap(g, text, 800), lh = size * 1.25;   // narrower + higher: clear of the Instagram Reels UI
   const words = text.split(' ').length, dur = Math.max(.3, CAP_END[i] - t0);
   const fade = 1 - seg(t, tEnd - .15, tEnd);
   let wi = 0;
@@ -387,7 +387,7 @@ function captions(g, t) {
     const widths = ws.map(w => g.measureText(w.replace(/\*/g, '')).width);
     const total = widths.reduce((a, b) => a + b, 0) + space * (ws.length - 1);
     let x = DIR === 'rtl' ? 540 + total / 2 : 540 - total / 2;
-    const y = 1710 + (li - (lines.length - 1) / 2) * lh;
+    const y = 1450 + (li - (lines.length - 1) / 2) * lh;
     let hl = false;
     ws.forEach((w, k) => {
       const appear = t0 + (wi / words) * Math.min(dur * .5, 1.2), p = seg(t, appear, appear + .14);
@@ -813,7 +813,7 @@ const SCENES = [
     crate(ctx); openSuitcase(ctx, 650, CRATE.top, 1, 0);
     signCard(ctx, 650, CRATE.top - 150, .42, true, .06);
     title(ctx, TT.end[0], 540, 300, 76, popIn(t, 42.4, 48, .45, .1), { maxW: 1000 });
-    title(ctx, TT.end[1], 540, 400, 64, popIn(t, 43.3, 48, .45, .1), { maxW: 1020, fill: '#ffd23f' });
+    title(ctx, TT.end[1], 540, 400, 64, popIn(t, 43.95, 48, .45, .1), { maxW: 1020, fill: '#ffd23f' });
   } },
 ];
 
